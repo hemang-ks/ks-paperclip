@@ -44,11 +44,11 @@ Examples:
   scripts/bootstrap-gcp.sh \
     --project-id my-project \
     --region us-central1 \
-    --github-repo my-org/hs-paperclip \
+    --github-repo my-org/ks-paperclip \
     --state-bucket my-project-tf-state
 
   PROJECT_ID=my-project REGION=us-central1 \
-    GITHUB_REPO=my-org/hs-paperclip STATE_BUCKET=my-project-tf-state \
+    GITHUB_REPO=my-org/ks-paperclip STATE_BUCKET=my-project-tf-state \
     scripts/bootstrap-gcp.sh
 EOF
 }

@@ -1,4 +1,4 @@
-# hs-paperclip
+# ks-paperclip
 
 GCP deployment for [Paperclip](https://github.com/paperclipai/paperclip). This repo does **not** vendor Paperclip source. It consumes the published image `ghcr.io/paperclipai/paperclip:sha-e55d702` (v2026.722.0).
 

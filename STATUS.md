@@ -36,10 +36,10 @@ Done. Do not rerun. Evidence is in `local/`.
 
 Goal: billed project plus everything GitHub Actions needs. No app infrastructure yet.
 
-- [ ] **0.1** Create/select GCP project, set `PROJECT_ID` / region — **You**
-- [ ] **0.2** Link billing, monthly budget + 50/75/90/100% alerts — **You**
-- [ ] **0.3** `gcloud auth login` + application-default credentials — **You**
-- [ ] **0.4** Confirm no GPU / no GKE — **You**
+- [x] **0.1** Create/select GCP project, set `PROJECT_ID` / region — **You**
+- [x] **0.2** Link billing, monthly budget + 50/75/90/100% alerts — **You**
+- [x] **0.3** `gcloud auth login` + application-default credentials — **You**
+- [x] **0.4** Confirm no GPU / no GKE — **You**
 - [x] **0.5** Write `scripts/bootstrap-gcp.sh` (APIs, TF state bucket, WIF locked to this repo, deployer SA, no JSON keys) — Cursor — `scripts/bootstrap-gcp.sh`, `docs/gcp-bootstrap.md`
 - [ ] **0.6** Run the bootstrap script — **You**
 - [ ] **0.7** GitHub Actions variables (`GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_DEPLOYER_SA`, `TF_STATE_BUCKET`) and Environment `dev` with you as required reviewer — **You**
