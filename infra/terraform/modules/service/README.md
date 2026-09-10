@@ -30,5 +30,5 @@ agents go through LiteLLM in Phase 2.
 
 ## Public access
 
-`allow_unauthenticated=true` grants `roles/run.invoker` to `allUsers`. Paperclip’s
+`allow_unauthenticated=true` sets `invoker_iam_disabled` (no `allUsers` IAM). Paperclip’s
 Better Auth is the real gate.

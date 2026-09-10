@@ -63,6 +63,11 @@ resource "google_cloud_run_v2_service" "paperclip" {
   location = var.region
   ingress  = var.ingress
 
+  # Domain Restricted Sharing blocks allUsers / allAuthenticatedUsers in IAM.
+  # Disable the invoker check so browsers can reach Better Auth without that binding.
+  # App auth (PAPERCLIP_DEPLOYMENT_MODE=authenticated) remains the access control.
+  invoker_iam_disabled = var.allow_unauthenticated
+
   template {
     service_account                  = var.service_account_email
     timeout                          = var.timeout
@@ -171,14 +176,3 @@ resource "google_cloud_run_v2_service" "paperclip" {
   labels = var.labels
 }
 
-# Paperclip does its own Better Auth. Cloud Run must accept unauthenticated
-# invocations so the browser can reach the login / invite UI.
-resource "google_cloud_run_v2_service_iam_member" "public_invoker" {
-  count = var.allow_unauthenticated ? 1 : 0
-
-  project  = google_cloud_run_v2_service.paperclip.project
-  location = google_cloud_run_v2_service.paperclip.location
-  name     = google_cloud_run_v2_service.paperclip.name
-  role     = "roles/run.invoker"
-  member   = "allUsers"
-}

@@ -125,7 +125,7 @@ variable "auth_disable_sign_up" {
 
 variable "allow_unauthenticated" {
   type        = bool
-  description = "Grant roles/run.invoker to allUsers (Paperclip does app-level auth)"
+  description = "Disable Cloud Run invoker IAM so browsers can reach Paperclip (app does Better Auth). Does not grant allUsers."
   default     = true
 }
 
