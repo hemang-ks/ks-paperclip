@@ -26,7 +26,7 @@ Paperclip on Cloud Run → adapter → LiteLLM → Gemini Flash (default) / Gemi
 | `scripts/ci-prepare-tfvars.sh` | Build `envs/dev/terraform.tfvars` in CI from repo variables + image pin |
 | `scripts/smoke-test.sh` | `GET /api/health` smoke check after deploy |
 | `scripts/seed-secrets.sh` | Seed Secret Manager values (never prints secrets) |
-| `docs/` | Bootstrap notes, runbook, architecture runbook |
+| `docs/` | Bootstrap notes, runbook (incl. Squarespace custom domain), architecture runbook |
 | `config/` | Bootstrap `config.json` template for first admin |
 | `infra/` | Terraform modules + `envs/dev` (Phase 1) |
 | `gateway/` | LiteLLM config (Phase 2; scaffold only) |

@@ -9,9 +9,9 @@ Working plan (why / constraints): [`.cursor/plans/paperclip-cost-optimized-execu
 | | |
 |---|---|
 | Current phase | **1 — Paperclip foundation (CI applies)** |
-| Next task | **1.7** Seed Paperclip secret values out of band (**You**) |
+| Next task | **1.9** Claim first admin on the `run.app` URL, then disable signup (**You**) |
 | First milestone | Phase 1 + Phase 2 (Gemini `worker`) |
-| Do not redo | Phase L. Phase 0 done. Cursor Phase 1.1–1.6 done. |
+| Do not redo | Phase L–0 done. 1.1–1.8 done. Image pinned (`sha-e55d702`). Cloud Run `paperclip` Ready. Domain mapping still waits on Squarespace verification. |
 
 When a task finishes, mark it `[x]` in this file in the same change set. Completing work without updating this file is incomplete.
 
@@ -60,9 +60,9 @@ Goal: UI up, Postgres durable, secrets in Secret Manager. No LiteLLM yet. You ne
 - [x] **1.4** Cloud Run `paperclip`: 1 vCPU / 4 GiB, CPU always on, min=max=1, auto-migrate, Cloud SQL + GCS + secrets — Cursor — `infra/terraform/modules/service/`, wired in `envs/dev`
 - [x] **1.5** Bootstrap Job (`auth bootstrap-ceo` + seeded `config.json`) — Cursor — `infra/terraform/modules/jobs/`, `docs/runbook.md`
 - [x] **1.6** GitHub Actions: `terraform-plan.yml`, `terraform-apply.yml` (Environment `dev` gate), `deploy.yml`. WIF, no SA JSON keys — Cursor — `.github/workflows/`, `scripts/ci-prepare-tfvars.sh`, `scripts/smoke-test.sh`
-- [ ] **1.7** Seed Paperclip secret values out of band (model keys in Phase 2) — **You**
-- [ ] **1.8** Merge infra PR; approve Environment `dev` so Actions applies — **You**
-- [ ] **1.9** Dispatch image-promote (or merge pin PR); claim first admin; disable signup — **You**
+- [x] **1.7** Seed Paperclip secret values out of band (model keys in Phase 2) — **You**
+- [x] **1.8** Merge infra PR; approve Environment `dev` so Actions applies — **You**
+- [ ] **1.9** Dispatch image-promote (or merge pin PR); claim first admin; disable signup — **You** — pin merged (`sha-e55d702`). Service apply succeeded; `GET /api/health` is `bootstrap_pending`. Custom domain does not resolve yet, so claim admin on `https://paperclip-hdgnwapmwa-uw.a.run.app` (Better Auth origin must match). Switch `PAPERCLIP_PUBLIC_URL` back to `https://paperclip.legotick.com` after domain mapping and cert.
 - [ ] **1.10** Validate: UI, company, restart, data persists, logs have no secrets — **You**
 
 Default agents may fail until Phase 2 (`claude_local` with no key). Expected.
