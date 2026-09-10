@@ -199,7 +199,6 @@ APIS=(
   sts.googleapis.com
   cloudresourcemanager.googleapis.com
   storage.googleapis.com
-  certificatemanager.googleapis.com
   logging.googleapis.com
   monitoring.googleapis.com
 )
@@ -210,8 +209,6 @@ APIS=(
 # logging.logWriter / cloudtrace.agent to runtime service accounts it creates.
 DEPLOYER_ROLES=(
   roles/compute.networkAdmin                 # VPC, subnet, PSA address, firewall
-  roles/compute.loadBalancerAdmin            # ALB, serverless NEG, forwarding
-  roles/compute.securityAdmin                # Cloud Armor policies
   roles/servicenetworking.networksAdmin      # Private Service Access peering
   roles/cloudsql.admin                       # Cloud SQL PG instance, user, db
   roles/artifactregistry.admin               # AR repo + CI image push
@@ -221,7 +218,6 @@ DEPLOYER_ROLES=(
   roles/iam.serviceAccountAdmin              # runtime / HMAC service accounts
   roles/iam.serviceAccountUser               # actAs those SAs on Cloud Run
   roles/resourcemanager.projectIamAdmin      # bind project roles onto runtime SAs
-  roles/certificatemanager.owner             # Google-managed certs / cert maps
   roles/logging.configWriter                 # log-based metrics
   roles/monitoring.editor                    # alerting policies, channels
 )
@@ -472,7 +468,7 @@ Federation — do not upload a service-account JSON key.
   GCP_REGION          ${REGION}
   TF_STATE_BUCKET     ${STATE_BUCKET}
 
-Also create a GitHub Environment named "prod" with required reviewers;
+Also create a GitHub Environment named "dev" with required reviewers;
 the apply workflow gates on it.
 
 If you use the gh CLI from this checkout:

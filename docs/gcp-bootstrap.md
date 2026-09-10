@@ -65,7 +65,6 @@ condition, so a previously unconstrained provider is tightened.
 - `sts.googleapis.com` (token exchange for WIF; required for GitHub Actions)
 - `cloudresourcemanager.googleapis.com`
 - `storage.googleapis.com`
-- `certificatemanager.googleapis.com`
 - `logging.googleapis.com`
 - `monitoring.googleapis.com`
 
@@ -78,8 +77,6 @@ Specific and minimal for the Terraform modules this repo will apply — not
 | Role | Why |
 |---|---|
 | `roles/compute.networkAdmin` | VPC, `/26` subnet, PSA allocated range, firewall |
-| `roles/compute.loadBalancerAdmin` | Global ALB, serverless NEG, forwarding rules |
-| `roles/compute.securityAdmin` | Cloud Armor policies |
 | `roles/servicenetworking.networksAdmin` | Private Service Access peering |
 | `roles/cloudsql.admin` | Cloud SQL PostgreSQL instance, database, user |
 | `roles/artifactregistry.admin` | Artifact Registry repo and CI image push |
@@ -89,7 +86,6 @@ Specific and minimal for the Terraform modules this repo will apply — not
 | `roles/iam.serviceAccountAdmin` | Runtime and HMAC service accounts |
 | `roles/iam.serviceAccountUser` | `actAs` those SAs when deploying Cloud Run |
 | `roles/resourcemanager.projectIamAdmin` | Bind `logging.logWriter` / `cloudtrace.agent` onto runtime SAs. Broadest role in this set. |
-| `roles/certificatemanager.owner` | Google-managed certificates and maps |
 | `roles/logging.configWriter` | Log-based metrics |
 | `roles/monitoring.editor` | Alerting policies and notification channels |
 
@@ -126,7 +122,7 @@ variables → Actions → Variables**. They are not secrets.
 | `GCP_REGION` | Region passed to the script |
 | `TF_STATE_BUCKET` | State bucket name |
 
-Also create a GitHub Environment named `prod` with required reviewers. The
+Also create a GitHub Environment named `dev` with required reviewers. The
 Terraform apply workflow gates on it.
 
 Copy-paste via `gh` (from the repo checkout):
@@ -148,15 +144,15 @@ Use the exact strings the script printed; `GCP_WIF_PROVIDER` must use the
 - DNS zones or registrar records
 - Service-account JSON keys
 - Anything Terraform manages (VPC, Cloud SQL, Cloud Run, secrets **values**,
-  uploads bucket, load balancer)
+  uploads bucket)
 
 Secret **values** are seeded later with `scripts/seed-secrets.sh`, not here.
 
 ## Teardown
 
-Destroy Terraform-managed infrastructure **first** (`terraform destroy` in
-`infra/terraform/envs/prod`, after you have accepted that it will delete Cloud
-SQL, the uploads bucket, and Cloud Run). Then remove bootstrap resources.
+Destroy Terraform-managed infrastructure **first** (after you have accepted
+that it will delete Cloud SQL, the uploads bucket, and Cloud Run). Then remove
+bootstrap resources.
 
 Deleting the state bucket while live infrastructure still exists leaves you
 with no inventory of what is running. Do that last, and only on purpose.
@@ -174,7 +170,7 @@ WIF_PROVIDER_ID="github-oidc"
 SA_EMAIL="terraform-deployer@${PROJECT_ID}.iam.gserviceaccount.com"
 WIF_MEMBER="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${WIF_POOL_ID}/attribute.repository/${GITHUB_REPO}"
 
-# 1. GitHub: delete the five repository variables and the `prod` environment.
+# 1. GitHub: delete the five repository variables and the `dev` environment.
 
 # 2. WIF binding on the deployer SA
 gcloud iam service-accounts remove-iam-policy-binding "${SA_EMAIL}" \
@@ -194,8 +190,6 @@ gcloud iam workload-identity-pools delete "${WIF_POOL_ID}" \
 # 4. Project roles (repeat for each role listed in the table above)
 for role in \
   roles/compute.networkAdmin \
-  roles/compute.loadBalancerAdmin \
-  roles/compute.securityAdmin \
   roles/servicenetworking.networksAdmin \
   roles/cloudsql.admin \
   roles/artifactregistry.admin \
@@ -205,7 +199,6 @@ for role in \
   roles/iam.serviceAccountAdmin \
   roles/iam.serviceAccountUser \
   roles/resourcemanager.projectIamAdmin \
-  roles/certificatemanager.owner \
   roles/logging.configWriter \
   roles/monitoring.editor
 do
