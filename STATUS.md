@@ -8,10 +8,10 @@ Working plan (why / constraints): [`.cursor/plans/paperclip-cost-optimized-execu
 
 | | |
 |---|---|
-| Current phase | **0 — GCP account and CI bootstrap** |
-| Next task | **0.7** GitHub Actions variables + Environment `dev` (**You**) |
+| Current phase | **1 — Paperclip foundation (CI applies)** |
+| Next task | **1.1** Scaffold `infra/`, `gateway/`, `scripts/`, `.github/workflows/` (**Cursor**) |
 | First milestone | Phase 1 + Phase 2 (Gemini `worker`) |
-| Do not redo | Phase L. Do not rewrite `scripts/bootstrap-gcp.sh` (0.5 is done). Bootstrap already ran (0.6). |
+| Do not redo | Phase L. Phase 0 bootstrap + GitHub wiring done (0.5–0.7). |
 
 When a task finishes, mark it `[x]` in this file in the same change set. Completing work without updating this file is incomplete.
 
@@ -42,9 +42,11 @@ Goal: billed project plus everything GitHub Actions needs. No app infrastructure
 - [x] **0.4** Confirm no GPU / no GKE — **You**
 - [x] **0.5** Write `scripts/bootstrap-gcp.sh` (APIs, TF state bucket, WIF locked to this repo, deployer SA, no JSON keys) — Cursor — `scripts/bootstrap-gcp.sh`, `docs/gcp-bootstrap.md`
 - [x] **0.6** Run the bootstrap script — **You**
-- [ ] **0.7** GitHub Actions variables (`GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_DEPLOYER_SA`, `TF_STATE_BUCKET`) and Environment `dev` with you as required reviewer — **You**
+- [x] **0.7** GitHub Actions variables (`GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_DEPLOYER_SA`, `TF_STATE_BUCKET`) and Environment `dev` with you as required reviewer — **You**
 
 CI workflows are Phase 1 (they need the Terraform tree). Bootstrap script must exist first — it does.
+
+Phase 0 complete.
 
 ---
 
