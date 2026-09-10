@@ -29,7 +29,7 @@ locals {
 
   plain_env = merge(
     {
-      PORT                          = "3100"
+      # Do not set PORT — Cloud Run reserves it and injects it to match container_port (3100).
       SERVE_UI                      = "true"
       PAPERCLIP_HOME                = "/paperclip"
       PAPERCLIP_INSTANCE_ID         = "default"
