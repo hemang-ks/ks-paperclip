@@ -208,7 +208,7 @@ APIS=(
 # projectIamAdmin is the broadest of these: Terraform must attach
 # logging.logWriter / cloudtrace.agent to runtime service accounts it creates.
 DEPLOYER_ROLES=(
-  roles/compute.networkAdmin                 # VPC, subnet, PSA address, firewall
+  roles/compute.networkAdmin                 # VPC, subnet, PSA address (not firewalls — that is securityAdmin)
   roles/servicenetworking.networksAdmin      # Private Service Access peering
   roles/cloudsql.admin                       # Cloud SQL PG instance, user, db
   roles/artifactregistry.admin               # AR repo + CI image push

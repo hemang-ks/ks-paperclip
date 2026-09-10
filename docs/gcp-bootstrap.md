@@ -76,7 +76,7 @@ Specific and minimal for the Terraform modules this repo will apply — not
 
 | Role | Why |
 |---|---|
-| `roles/compute.networkAdmin` | VPC, `/26` subnet, PSA allocated range, firewall |
+| `roles/compute.networkAdmin` | VPC, `/26` subnet, PSA allocated range (not classic VPC firewalls — those need `securityAdmin`, which we omit) |
 | `roles/servicenetworking.networksAdmin` | Private Service Access peering |
 | `roles/cloudsql.admin` | Cloud SQL PostgreSQL instance, database, user |
 | `roles/artifactregistry.admin` | Artifact Registry repo and CI image push |
