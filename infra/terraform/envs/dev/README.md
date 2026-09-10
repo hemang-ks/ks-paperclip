@@ -46,9 +46,9 @@ cd ../../../../
   --from-terraform infra/terraform/envs/dev
 ```
 
-Uses the Terraform-managed DB password and HMAC (if created). Does not print
-secret values. Back up `paperclip-secrets-master-key` via
-`gcloud secrets versions access` immediately after first seed.
+Uses the Terraform-managed DB password. HMAC defaults to out-of-band: after apply,
+create a key for `paperclip-gcs-hmac@…` with `gcloud storage hmac create`, then let
+`seed-secrets.sh` prompt for the pair (or set `PAPERCLIP_GCS_HMAC_*` env vars).
 
 Provider API keys are skipped by default (`--with-provider-keys` for Phase 2).
 

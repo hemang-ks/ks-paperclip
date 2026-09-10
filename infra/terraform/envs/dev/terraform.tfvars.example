@@ -22,7 +22,7 @@ paperclip_schema_migration_count = ""
 
 # Optional overrides:
 # cloud_sql_tier                 = "db-g1-small"
-# create_hmac_key                = true
+# create_hmac_key                = true   # needs roles/storage.hmacKeyAdmin; secret enters TF state
 # paperclip_cpu                  = "1"
 # paperclip_memory               = "4Gi"
 # paperclip_auth_disable_sign_up = false

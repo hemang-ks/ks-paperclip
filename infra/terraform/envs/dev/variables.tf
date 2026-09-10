@@ -32,8 +32,8 @@ variable "cloud_sql_tier" {
 
 variable "create_hmac_key" {
   type        = bool
-  description = "Create GCS HMAC in Terraform (secret enters state). Set false to create out-of-band."
-  default     = true
+  description = "Create GCS HMAC in Terraform (secret enters state). Default false — create out-of-band for 1.7."
+  default     = false
 }
 
 variable "labels" {

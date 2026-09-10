@@ -81,7 +81,8 @@ Specific and minimal for the Terraform modules this repo will apply — not
 | `roles/cloudsql.admin` | Cloud SQL PostgreSQL instance, database, user |
 | `roles/artifactregistry.admin` | Artifact Registry repo and CI image push |
 | `roles/secretmanager.admin` | Secret containers, replication, per-secret IAM (not values) |
-| `roles/storage.admin` | Uploads bucket, HMAC keys, and the state bucket |
+| `roles/storage.admin` | Uploads bucket and the state bucket |
+| `roles/storage.hmacKeyAdmin` | Optional `google_storage_hmac_key` when `create_hmac_key=true` |
 | `roles/run.admin` | Cloud Run services and jobs |
 | `roles/iam.serviceAccountAdmin` | Runtime and HMAC service accounts |
 | `roles/iam.serviceAccountUser` | `actAs` those SAs when deploying Cloud Run |
@@ -203,6 +204,7 @@ for role in \
   roles/artifactregistry.admin \
   roles/secretmanager.admin \
   roles/storage.admin \
+  roles/storage.hmacKeyAdmin \
   roles/run.admin \
   roles/iam.serviceAccountAdmin \
   roles/iam.serviceAccountUser \

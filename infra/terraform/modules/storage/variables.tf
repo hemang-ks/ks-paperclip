@@ -21,8 +21,8 @@ variable "hmac_service_account_id" {
 
 variable "create_hmac_key" {
   type        = bool
-  description = "If true, create google_storage_hmac_key (secret lands in Terraform state). If false, create the HMAC out-of-band and seed Secret Manager yourself."
-  default     = true
+  description = "If true, create google_storage_hmac_key (secret lands in Terraform state; needs storage.hmacKeys.create). Default false — create HMAC out-of-band and seed Secret Manager."
+  default     = false
 }
 
 variable "noncurrent_version_days" {

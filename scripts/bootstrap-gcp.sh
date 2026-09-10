@@ -213,7 +213,8 @@ DEPLOYER_ROLES=(
   roles/cloudsql.admin                       # Cloud SQL PG instance, user, db
   roles/artifactregistry.admin               # AR repo + CI image push
   roles/secretmanager.admin                  # secret containers + per-secret IAM
-  roles/storage.admin                        # uploads bucket, HMAC keys, state
+  roles/storage.admin                        # uploads bucket, state bucket
+  roles/storage.hmacKeyAdmin                 # optional google_storage_hmac_key when create_hmac_key=true
   roles/run.admin                            # Cloud Run services and jobs
   roles/iam.serviceAccountAdmin              # runtime / HMAC service accounts
   roles/iam.serviceAccountUser               # actAs those SAs on Cloud Run

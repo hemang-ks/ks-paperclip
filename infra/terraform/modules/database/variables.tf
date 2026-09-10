@@ -21,8 +21,19 @@ variable "instance_name" {
 
 variable "tier" {
   type        = string
-  description = "Machine tier. Default is a small custom VM suitable for personal/dev use."
+  description = "Machine tier. Default is a small custom VM suitable for personal/dev use (ENTERPRISE edition)."
   default     = "db-custom-1-3840"
+}
+
+variable "edition" {
+  type        = string
+  description = "Cloud SQL edition. ENTERPRISE allows db-custom-* / shared-core tiers. ENTERPRISE_PLUS needs db-perf-optimized-N-*."
+  default     = "ENTERPRISE"
+
+  validation {
+    condition     = contains(["ENTERPRISE", "ENTERPRISE_PLUS"], var.edition)
+    error_message = "edition must be ENTERPRISE or ENTERPRISE_PLUS."
+  }
 }
 
 variable "availability_type" {

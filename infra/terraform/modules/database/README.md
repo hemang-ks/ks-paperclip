@@ -18,8 +18,11 @@ seeding Secret Manager (after apply, using the private IP output).
 
 | Tier | Notes |
 |---|---|
-| `db-custom-1-3840` (default) | 1 vCPU / 3.75 GiB — fine for personal/dev |
+| `db-custom-1-3840` (default) | 1 vCPU / 3.75 GiB — fine for personal/dev. Requires `edition = ENTERPRISE`. |
 | `db-g1-small` | Cheaper shared-core option if you want to cut cost further |
+
+Provider defaults can pick **ENTERPRISE_PLUS**, which rejects `db-custom-*`. This module
+sets `edition = ENTERPRISE` explicitly.
 
 ## Inputs / outputs
 

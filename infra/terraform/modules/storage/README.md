@@ -18,12 +18,22 @@ AWS_SECRET_ACCESS_KEY=<hmac secret>
 
 ## HMAC and Terraform state
 
-`google_storage_hmac_key` writes the secret into **Terraform state**. Keep the
-state bucket private with restricted IAM (bootstrap already does this).
+Default: `create_hmac_key = false` (no HMAC secret in Terraform state).
 
-Prefer `create_hmac_key = false` if you want zero HMAC material in state: create
-the key with `gcloud storage hmac create`, then seed
-`paperclip-gcs-hmac-access-key` / `paperclip-gcs-hmac-secret` out of band.
+Create out-of-band after the HMAC service account and bucket exist:
+
+```bash
+# List the HMAC SA email from terraform output hmac_service_account_email,
+# or: paperclip-gcs-hmac@$PROJECT_ID.iam.gserviceaccount.com
+gcloud storage hmac create EMAIL \
+  --project="$PROJECT_ID"
+```
+
+Seed `paperclip-gcs-hmac-access-key` / `paperclip-gcs-hmac-secret` via
+`scripts/seed-secrets.sh` (prompts if not using `--from-terraform`).
+
+Set `create_hmac_key = true` only if the deployer has `roles/storage.hmacKeyAdmin`
+(bootstrap grants it) and you accept the secret living in state.
 
 ## IAM
 

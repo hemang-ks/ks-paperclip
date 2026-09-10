@@ -9,6 +9,8 @@ resource "google_sql_database_instance" "paperclip" {
   deletion_protection = var.deletion_protection
 
   settings {
+    # ENTERPRISE supports db-custom-*; ENTERPRISE_PLUS requires db-perf-optimized-N-*.
+    edition           = var.edition
     tier              = var.tier
     availability_type = var.availability_type
     disk_type         = "PD_SSD"
