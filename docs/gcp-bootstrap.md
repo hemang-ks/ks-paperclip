@@ -138,6 +138,14 @@ gh variable set TF_STATE_BUCKET  --body "PROJECT_ID-tf-state"
 Use the exact strings the script printed; `GCP_WIF_PROVIDER` must use the
 **project number**, not the project ID.
 
+Optional repository variables (used by CI when set):
+
+| Variable | Purpose |
+|---|---|
+| `UPLOADS_BUCKET_NAME` | GCS uploads bucket (default: `$GCP_PROJECT_ID-paperclip-uploads`) |
+| `PAPERCLIP_PUBLIC_URL` | Public HTTPS URL; required before Cloud Run service/jobs are created |
+| `PAPERCLIP_AUTH_DISABLE_SIGN_UP` | `true` / `false` after first admin (default false) |
+
 ## What this script does not create
 
 - The GCP project or billing link

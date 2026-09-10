@@ -9,9 +9,9 @@ Working plan (why / constraints): [`.cursor/plans/paperclip-cost-optimized-execu
 | | |
 |---|---|
 | Current phase | **1 — Paperclip foundation (CI applies)** |
-| Next task | **1.1** Scaffold `infra/`, `gateway/`, `scripts/`, `.github/workflows/` (**Cursor**) |
+| Next task | **1.7** Seed Paperclip secret values out of band (**You**) |
 | First milestone | Phase 1 + Phase 2 (Gemini `worker`) |
-| Do not redo | Phase L. Phase 0 bootstrap + GitHub wiring done (0.5–0.7). |
+| Do not redo | Phase L. Phase 0 done. Cursor Phase 1.1–1.6 done. |
 
 When a task finishes, mark it `[x]` in this file in the same change set. Completing work without updating this file is incomplete.
 
@@ -54,12 +54,12 @@ Phase 0 complete.
 
 Goal: UI up, Postgres durable, secrets in Secret Manager. No LiteLLM yet. You never run `terraform apply`.
 
-- [ ] **1.1** Scaffold `infra/`, `gateway/`, `scripts/`, `.github/workflows/` (do not vendor Paperclip source) — Cursor
-- [ ] **1.2** Terraform: APIs, Artifact Registry, VPC + private Cloud SQL (small dev tier), Secret Manager containers, GCS uploads, runtime SAs (`paperclip-runtime`, `litellm-runtime` placeholder) — Cursor
-- [ ] **1.3** Image promote script + `image-promote.yml` (GHCR → Artifact Registry, digest pin, pin PR) — Cursor
-- [ ] **1.4** Cloud Run `paperclip`: 1 vCPU / 4 GiB, CPU always on, min=max=1, auto-migrate, Cloud SQL + GCS + secrets — Cursor
-- [ ] **1.5** Bootstrap Job (`auth bootstrap-ceo` + seeded `config.json`) — Cursor
-- [ ] **1.6** GitHub Actions: `terraform-plan.yml`, `terraform-apply.yml` (Environment `dev` gate), `deploy.yml`. WIF, no SA JSON keys — Cursor
+- [x] **1.1** Scaffold `infra/`, `gateway/`, `scripts/`, `.github/workflows/` (do not vendor Paperclip source) — Cursor — `scripts/scaffold-dirs.sh`, `infra/`, `gateway/`, `.github/workflows/`
+- [x] **1.2** Terraform: APIs, Artifact Registry, VPC + private Cloud SQL (small dev tier), Secret Manager containers, GCS uploads, runtime SAs (`paperclip-runtime`, `litellm-runtime` placeholder) — Cursor — `infra/terraform/modules/*`, `infra/terraform/envs/dev/`
+- [x] **1.3** Image promote script + `image-promote.yml` (GHCR → Artifact Registry, digest pin, pin PR) — Cursor — `scripts/promote-image.sh`, `.github/workflows/image-promote.yml`
+- [x] **1.4** Cloud Run `paperclip`: 1 vCPU / 4 GiB, CPU always on, min=max=1, auto-migrate, Cloud SQL + GCS + secrets — Cursor — `infra/terraform/modules/service/`, wired in `envs/dev`
+- [x] **1.5** Bootstrap Job (`auth bootstrap-ceo` + seeded `config.json`) — Cursor — `infra/terraform/modules/jobs/`, `docs/runbook.md`
+- [x] **1.6** GitHub Actions: `terraform-plan.yml`, `terraform-apply.yml` (Environment `dev` gate), `deploy.yml`. WIF, no SA JSON keys — Cursor — `.github/workflows/`, `scripts/ci-prepare-tfvars.sh`, `scripts/smoke-test.sh`
 - [ ] **1.7** Seed Paperclip secret values out of band (model keys in Phase 2) — **You**
 - [ ] **1.8** Merge infra PR; approve Environment `dev` so Actions applies — **You**
 - [ ] **1.9** Dispatch image-promote (or merge pin PR); claim first admin; disable signup — **You**

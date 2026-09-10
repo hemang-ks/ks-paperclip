@@ -20,7 +20,14 @@ Paperclip on Cloud Run → adapter → LiteLLM → Gemini Flash (default) / Gemi
 |---|---|
 | `STATUS.md` | Task tracker |
 | `local/` | Docker Compose validation harness |
-| `scripts/bootstrap-gcp.sh` | One-time GCP bootstrap for Terraform + Actions (Phase 0.5, already written) |
-| `docs/` | Bootstrap notes and architecture runbook |
+| `scripts/bootstrap-gcp.sh` | One-time GCP bootstrap for Terraform + Actions (Phase 0) |
+| `scripts/scaffold-dirs.sh` | Idempotent Phase 1 directory scaffold |
+| `scripts/promote-image.sh` | Mirror Paperclip GHCR → Artifact Registry; print digest + schema labels |
+| `scripts/ci-prepare-tfvars.sh` | Build `envs/dev/terraform.tfvars` in CI from repo variables + image pin |
+| `scripts/smoke-test.sh` | `GET /api/health` smoke check after deploy |
+| `scripts/seed-secrets.sh` | Seed Secret Manager values (never prints secrets) |
+| `docs/` | Bootstrap notes, runbook, architecture runbook |
 | `config/` | Bootstrap `config.json` template for first admin |
-| `infra/` | Terraform (Phase 1; not created yet) |
+| `infra/` | Terraform modules + `envs/dev` (Phase 1) |
+| `gateway/` | LiteLLM config (Phase 2; scaffold only) |
+| `.github/workflows/` | CI: `image-promote`, `terraform-plan`, `terraform-apply` (Environment `dev`), `deploy` |

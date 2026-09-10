@@ -1,0 +1,81 @@
+# Terraform apply for envs/dev.
+# Gated on GitHub Environment `dev` (required reviewers = the apply button).
+# Auth: Workload Identity Federation only — no SA JSON keys.
+#
+# Concurrency shared with deploy.yml — single-instance Cloud Run must not get
+# overlapping applies.
+
+name: terraform-apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - "scripts/ci-prepare-tfvars.sh"
+      - ".github/workflows/terraform-apply.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-dev
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: infra/terraform/envs/dev
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_DEPLOYER_SA: ${{ vars.GCP_DEPLOYER_SA }}
+      UPLOADS_BUCKET_NAME: ${{ vars.UPLOADS_BUCKET_NAME }}
+      PAPERCLIP_PUBLIC_URL: ${{ vars.PAPERCLIP_PUBLIC_URL }}
+      PAPERCLIP_AUTH_DISABLE_SIGN_UP: ${{ vars.PAPERCLIP_AUTH_DISABLE_SIGN_UP }}
+      TF_IN_AUTOMATION: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.11.4"
+          terraform_wrapper: false
+
+      - name: Prepare tfvars
+        working-directory: .
+        run: |
+          chmod +x scripts/ci-prepare-tfvars.sh
+          ./scripts/ci-prepare-tfvars.sh
+
+      - name: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -input=false
+
+      - name: terraform plan
+        run: terraform plan -input=false -no-color -out=tfplan
+
+      - name: terraform apply
+        run: terraform apply -input=false -auto-approve tfplan

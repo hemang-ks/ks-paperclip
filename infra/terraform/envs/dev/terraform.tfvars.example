@@ -1,0 +1,28 @@
+# Copy to terraform.tfvars locally only if you must run validate/plan by hand.
+# Do NOT commit real .tfvars. GitHub Actions supplies these from repository variables.
+#
+# Apply path: GitHub Actions + Environment `dev` approval — not local terraform apply.
+
+project_id                     = "YOUR_GCP_PROJECT_ID"
+region                         = "us-central1"
+deployer_service_account_email = "terraform-deployer@YOUR_GCP_PROJECT_ID.iam.gserviceaccount.com"
+uploads_bucket_name            = "YOUR_GCP_PROJECT_ID-paperclip-uploads"
+
+# Image pin — updated by `.github/workflows/image-promote.yml` (digest only; never a tag).
+# Run promote after Artifact Registry exists (first Terraform apply). Default matches
+# local harness: ghcr.io/paperclipai/paperclip:sha-e55d702 (v2026.722.0).
+paperclip_source_ref               = "sha-e55d702"
+paperclip_image_digest             = "sha256:PENDING_RUN_IMAGE_PROMOTE"
+paperclip_schema_last_migration  = ""
+paperclip_schema_migration_count = ""
+
+# Required to create the Cloud Run service (with a real digest above).
+# Use your custom domain or the *.run.app URL after the first service revision exists.
+# paperclip_public_url = "https://paperclip.example.com"
+
+# Optional overrides:
+# cloud_sql_tier                 = "db-g1-small"
+# create_hmac_key                = true
+# paperclip_cpu                  = "1"
+# paperclip_memory               = "4Gi"
+# paperclip_auth_disable_sign_up = false

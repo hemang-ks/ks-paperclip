@@ -1,0 +1,137 @@
+# Image promotion → Artifact Registry → digest pin PR
+#
+# Rationale: Paperclip bumps become reviewable diffs instead of mutable-tag drift.
+# The PR body includes schema.migration-count so reviewers see how much DB schema
+# change is inbound before approve/apply.
+#
+# Auth: Workload Identity Federation only — no SA JSON keys.
+# Repo variables: GCP_WIF_PROVIDER, GCP_DEPLOYER_SA, GCP_PROJECT_ID, GCP_REGION
+
+name: image-promote
+
+on:
+  workflow_dispatch:
+    inputs:
+      paperclip_ref:
+        description: GHCR tag on ghcr.io/paperclipai/paperclip (no version tags upstream)
+        required: true
+        default: sha-e55d702
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: image-promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Authenticate to Google Cloud (WIF)
+        id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+          token_format: access_token
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Configure Artifact Registry credentials for crane
+        run: gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+
+      - name: Install crane
+        env:
+          CRANE_VERSION: v0.20.3
+        run: |
+          curl -fsSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" \
+            | tar -xz -C /usr/local/bin crane
+          crane version
+
+      - name: Read currently pinned migration-count (if any)
+        id: current
+        run: |
+          PIN_FILE="infra/terraform/envs/dev/terraform.tfvars.example"
+          current_count=""
+          current_digest=""
+          if [[ -f "${PIN_FILE}" ]]; then
+            current_digest="$(grep -E '^\s*paperclip_image_digest\s*=' "${PIN_FILE}" | head -1 | sed -E 's/.*=\s*"([^"]+)".*/\1/' || true)"
+            current_count="$(grep -E '^\s*paperclip_schema_migration_count\s*=' "${PIN_FILE}" | head -1 | sed -E 's/.*=\s*"([^"]+)".*/\1/' || true)"
+          fi
+          echo "digest=${current_digest}" >> "${GITHUB_OUTPUT}"
+          echo "migration_count=${current_count}" >> "${GITHUB_OUTPUT}"
+
+      - name: Promote image (GHCR → Artifact Registry)
+        id: promote
+        run: |
+          ./scripts/promote-image.sh \
+            --project-id "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --source-ref "${{ inputs.paperclip_ref }}" \
+            --github-output
+
+      - name: Update digest pin in terraform.tfvars.example
+        env:
+          SOURCE_REF: ${{ inputs.paperclip_ref }}
+          DIGEST: ${{ steps.promote.outputs.digest }}
+          SCHEMA_LAST: ${{ steps.promote.outputs.schema_last_migration }}
+          SCHEMA_COUNT: ${{ steps.promote.outputs.schema_migration_count }}
+        run: |
+          python3 <<'PY'
+          import os, pathlib, re
+          path = pathlib.Path("infra/terraform/envs/dev/terraform.tfvars.example")
+          text = path.read_text()
+          replacements = {
+              "paperclip_source_ref": os.environ["SOURCE_REF"],
+              "paperclip_image_digest": os.environ["DIGEST"],
+              "paperclip_schema_last_migration": os.environ.get("SCHEMA_LAST", ""),
+              "paperclip_schema_migration_count": os.environ.get("SCHEMA_COUNT", ""),
+          }
+          for key, value in replacements.items():
+              pattern = re.compile(rf'(?m)^(\s*{re.escape(key)}\s*=\s*)".*?"\s*$')
+              if pattern.search(text):
+                  text = pattern.sub(rf'\1"{value}"', text)
+              else:
+                  text = text.rstrip() + f"\n\n# Updated by image-promote workflow\n{key} = \"{value}\"\n"
+          path.write_text(text if text.endswith("\n") else text + "\n")
+          print(f"updated {path}")
+          PY
+
+      - name: Create pull request for digest pin
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            pin Paperclip image ${{ inputs.paperclip_ref }} (${{ steps.promote.outputs.digest }})
+          branch: chore/pin-paperclip-${{ inputs.paperclip_ref }}
+          delete-branch: true
+          title: "pin Paperclip image ${{ inputs.paperclip_ref }}"
+          body: |
+            ## Image pin
+
+            Version bumps are reviewable diffs (no mutable-tag drift).
+
+            | | |
+            |---|---|
+            | Source ref (GHCR) | `${{ inputs.paperclip_ref }}` |
+            | Resolved digest | `${{ steps.promote.outputs.digest }}` |
+            | Digest ref | `${{ steps.promote.outputs.digest_ref }}` |
+            | schema.last-migration | `${{ steps.promote.outputs.schema_last_migration }}` |
+            | schema.migration-count (new) | `${{ steps.promote.outputs.schema_migration_count }}` |
+            | schema.migration-count (previous pin) | `${{ steps.current.outputs.migration_count || 'none' }}` |
+
+            Migration-count delta: previous `${{ steps.current.outputs.migration_count || 'none' }}` → new `${{ steps.promote.outputs.schema_migration_count }}`.
+
+            After merge, Terraform apply (Environment `dev`) picks up the digest when the Cloud Run service module is wired (Phase 1.4+).
+          add-paths: |
+            infra/terraform/envs/dev/terraform.tfvars.example

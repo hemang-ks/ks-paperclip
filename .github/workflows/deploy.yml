@@ -1,0 +1,129 @@
+# Deploy / roll Paperclip image digest to Cloud Run via Terraform.
+#
+# Cost-optimized v1: NO dedicated migrate Job. The service boots with
+# PAPERCLIP_MIGRATION_AUTO_APPLY=true (STATUS L8 / working plan).
+#
+# IMPORTANT — schema rollback is NOT automatic. Migrations are forward-only, so
+# a traffic rollback can leave a newer schema in place. Consult docs/runbook.md
+# for anything beyond a trivial revert.
+#
+# Auth: Workload Identity Federation only — no SA JSON keys.
+# Concurrency shared with terraform-apply.yml (single-instance service).
+
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/terraform/envs/dev/terraform.tfvars.example"
+  workflow_dispatch:
+    inputs:
+      skip_smoke:
+        description: Skip smoke test after apply
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_DEPLOYER_SA: ${{ vars.GCP_DEPLOYER_SA }}
+      UPLOADS_BUCKET_NAME: ${{ vars.UPLOADS_BUCKET_NAME }}
+      PAPERCLIP_PUBLIC_URL: ${{ vars.PAPERCLIP_PUBLIC_URL }}
+      PAPERCLIP_AUTH_DISABLE_SIGN_UP: ${{ vars.PAPERCLIP_AUTH_DISABLE_SIGN_UP }}
+      TF_IN_AUTOMATION: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "1.11.4"
+          terraform_wrapper: false
+
+      - name: Prepare tfvars
+        run: |
+          chmod +x scripts/ci-prepare-tfvars.sh scripts/smoke-test.sh
+          ./scripts/ci-prepare-tfvars.sh
+
+      - name: Remember previous Cloud Run revision (for rollback)
+        id: prev
+        continue-on-error: true
+        run: |
+          rev="$(gcloud run services describe paperclip \
+            --project="${GCP_PROJECT_ID}" \
+            --region="${GCP_REGION}" \
+            --format='value(status.latestReadyRevisionName)' 2>/dev/null || true)"
+          echo "revision=${rev}" >> "${GITHUB_OUTPUT}"
+          echo "Previous ready revision: ${rev:-"(none)"}"
+
+      - name: terraform init
+        working-directory: infra/terraform/envs/dev
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -input=false
+
+      - name: terraform apply
+        id: apply
+        working-directory: infra/terraform/envs/dev
+        run: |
+          terraform apply -input=false -auto-approve
+
+      - name: Resolve smoke URL
+        id: url
+        working-directory: infra/terraform/envs/dev
+        run: |
+          uri="$(terraform output -raw paperclip_service_uri 2>/dev/null || true)"
+          if [[ -z "${uri}" || "${uri}" == "null" ]]; then
+            uri="${PAPERCLIP_PUBLIC_URL}"
+          fi
+          echo "uri=${uri}" >> "${GITHUB_OUTPUT}"
+          echo "Smoke URL: ${uri:-"(empty)"}"
+
+      - name: Smoke test
+        id: smoke
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.skip_smoke != true }}
+        run: |
+          if [[ -z "${{ steps.url.outputs.uri }}" ]]; then
+            echo "No service URI yet (image digest pending or public_url unset). Skipping smoke."
+            exit 0
+          fi
+          # Give the new revision a moment to pass startup probe
+          sleep 20
+          ./scripts/smoke-test.sh "${{ steps.url.outputs.uri }}"
+
+      - name: Rollback traffic on failure
+        if: failure() && steps.apply.outcome == 'success' && steps.prev.outputs.revision != ''
+        run: |
+          echo "Smoke/deploy failed — routing 100% traffic to ${{ steps.prev.outputs.revision }}"
+          echo "NOTE: schema rollback is NOT automatic. Migrations are forward-only."
+          gcloud run services update-traffic paperclip \
+            --project="${GCP_PROJECT_ID}" \
+            --region="${GCP_REGION}" \
+            --to-revisions="${{ steps.prev.outputs.revision }}=100"
