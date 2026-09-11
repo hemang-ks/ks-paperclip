@@ -108,10 +108,14 @@ paperclip_schema_migration_count = "${SCHEMA_COUNT}"
 paperclip_public_url             = "${PUBLIC_URL}"
 paperclip_auth_disable_sign_up   = ${AUTH_DISABLE}
 
-litellm_image_digest        = "${LITELLM_DIGEST}"
-litellm_import_secret_ids   = ${IMPORT_HCL}
-litellm_mount_anthropic     = ${MOUNT_ANTHROPIC}
+litellm_image_digest      = "${LITELLM_DIGEST}"
+litellm_import_secret_ids = ${IMPORT_HCL}
+litellm_mount_anthropic   = ${MOUNT_ANTHROPIC}
 EOF
+
+if command -v terraform >/dev/null 2>&1; then
+  terraform fmt "${OUT}" >/dev/null
+fi
 
 echo "Wrote ${OUT}"
 echo "  project_id=${PROJECT_ID}"
