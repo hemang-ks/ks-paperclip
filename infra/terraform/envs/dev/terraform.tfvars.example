@@ -22,8 +22,7 @@ paperclip_schema_migration_count = "182"
 # LiteLLM gateway image pin — updated by `.github/workflows/gateway-build.yml`.
 # Cloud Run litellm is gated off until this is a real digest. Seed
 # litellm-master-key (`scripts/seed-secrets.sh --gateway-only`) before that apply.
-litellm_image_digest = "sha256:PENDING_RUN_GATEWAY_BUILD"
-
+litellm_image_digest = "sha256:24dadf221ca67078973158db7bc56cda5a9f7ecb383fe2292bb840273ae4c7aa"
 # Optional overrides:
 # cloud_sql_tier                 = "db-g1-small"
 # create_hmac_key                = true   # needs roles/storage.hmacKeyAdmin; secret enters TF state
