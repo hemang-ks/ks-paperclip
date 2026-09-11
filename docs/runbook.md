@@ -247,7 +247,44 @@ Auth on `/v1/*` is `LITELLM_MASTER_KEY`. Provider keys stay on this service.
    ```
 
    The URL is internal. Do not expect `curl` from your laptop to succeed.
-   Paperclip in the same project can reach it (Phase 2.4 adapter).
+
+## Paperclip → LiteLLM (Phase 2.4 / 2.6)
+
+The pinned Paperclip image (`sha-e55d702`) has **no** `openai_compatible` adapter.
+The built-in `http` adapter is a **webhook** (Paperclip wake payload), not
+OpenAI chat-completions, so it is not used against LiteLLM.
+
+Reuse **`gemini_local`** (Gemini CLI in the Paperclip container). Cloud Run
+`paperclip` is given:
+
+| Env | Source |
+|---|---|
+| `GOOGLE_GEMINI_BASE_URL` / `LITELLM_BASE_URL` | LiteLLM Cloud Run URI |
+| `GEMINI_API_KEY` / `LITELLM_MASTER_KEY` | Secret `litellm-master-key` (gateway auth, **not** the Google Gemini key) |
+
+The Google Gemini key stays only on LiteLLM.
+
+Merge the 2.4 PR and approve Environment `dev` so Paperclip picks up those env
+vars. Then configure **one** test agent in the UI:
+
+1. Open `https://paperclip.legotick.com`
+2. Create or edit an agent (not the default `claude_local` Chief of Staff)
+3. Adapter: **`gemini_local`**
+4. Set:
+
+| Field | Value |
+|---|---|
+| `cwd` | `/paperclip/agents/worker` |
+| `model` | `worker` |
+| `engine` | `cli` |
+| `yolo` | `true` |
+
+Do not put a Gemini/Anthropic key in the agent config. `model: worker` is the
+LiteLLM alias (Flash). Use `reasoning` or `premium` later; `premium` needs the
+Anthropic secret mounted on LiteLLM.
+
+Default `claude_local` agents stay without an Anthropic key on Paperclip — that
+is expected. Claude is not the default path.
 
 ### Change a model without touching agents
 

@@ -135,6 +135,12 @@ variable "extra_env" {
   default     = {}
 }
 
+variable "extra_secret_env" {
+  type        = map(string)
+  description = "Additional env vars mounted from Secret Manager (env name -> secret_id). Phase 2: LiteLLM gateway key."
+  default     = {}
+}
+
 variable "labels" {
   type    = map(string)
   default = {}

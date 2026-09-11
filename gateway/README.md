@@ -31,6 +31,15 @@ Until then, `premium` calls fail; `worker` / `reasoning` still work.
 
 Do not grant `allUsers`. Do not put Gemini/Anthropic keys on Paperclip.
 
+## How Paperclip calls this gateway
+
+Pinned Paperclip (`sha-e55d702`) has no OpenAI-compatible adapter. The built-in
+`http` type is a webhook, not `/v1/chat/completions`.
+
+**Reuse `gemini_local`.** After the 2.4 apply, Cloud Run `paperclip` has
+`GOOGLE_GEMINI_BASE_URL` (this service) and `GEMINI_API_KEY` set to the LiteLLM
+master key. Point a test agent at alias `worker` (see `docs/runbook.md`).
+
 ## Image
 
 Dockerfile bakes `config/config.yaml` onto `ghcr.io/berriai/litellm:v1.76.1-stable`.

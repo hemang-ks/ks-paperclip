@@ -140,6 +140,19 @@ resource "google_cloud_run_v2_service" "paperclip" {
         }
       }
 
+      dynamic "env" {
+        for_each = var.extra_secret_env
+        content {
+          name = env.key
+          value_source {
+            secret_key_ref {
+              secret  = env.value
+              version = "latest"
+            }
+          }
+        }
+      }
+
       # Cloud Run caps startup probe budget at ~240s. Auto-migrate (~seconds in L4)
       # fits; a dedicated migrate Job is not required for v1.
       startup_probe {

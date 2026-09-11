@@ -9,9 +9,9 @@ Working plan (why / constraints): [`.cursor/plans/paperclip-cost-optimized-execu
 | | |
 |---|---|
 | Current phase | **2 — LLM gateway (first milestone)** |
-| Next task | **2.4** Reuse Paperclip HTTP/OpenAI adapter if it exists; custom `litellm-http` only if needed — Cursor |
+| Next task | **2.6** Point one test agent at `worker` — **You** |
 | First milestone | Phase 1 + Phase 2 (Gemini `worker`) |
-| Do not redo | Phase L–1 done. Image pinned (`sha-e55d702`). Service at `https://paperclip.legotick.com`. Signup disabled. First admin claimed. Gemini auth = API key. Gateway secrets seeded (`litellm-gemini-api-key`). |
+| Do not redo | Phase L–1 done. Image pinned (`sha-e55d702`). Service at `https://paperclip.legotick.com`. Signup disabled. First admin claimed. Gemini auth = API key. Gateway secrets seeded. Cloud Run `litellm` Ready (`https://litellm-hdgnwapmwa-uw.a.run.app`). |
 
 When a task finishes, mark it `[x]` in this file in the same change set. Completing work without updating this file is incomplete.
 
@@ -75,9 +75,9 @@ Goal: Paperclip calls LiteLLM, LiteLLM calls Gemini `worker`. No public anonymou
 
 - [x] **2.1** Gemini auth: API key (faster) vs Vertex IAM (later) — **You** — API key
 - [x] **2.2** Put Gemini (and optional Anthropic) keys in Secret Manager; do not paste into chat — **You** — `litellm-gemini-api-key` (and optional `litellm-anthropic-api-key`)
-- [x] **2.3** LiteLLM Cloud Run + aliases `worker` / `reasoning` / `premium`; gateway auth; no public anonymous API — Cursor — `gateway/`, `infra/terraform/modules/gateway/`, `scripts/build-gateway.sh`, `scripts/seed-secrets.sh --gateway-only`
-- [ ] **2.4** Reuse Paperclip HTTP/OpenAI adapter if it exists; custom `litellm-http` only if needed — Cursor
-- [ ] **2.5** Merge PR; seed `litellm-master-key`; dispatch gateway-build; approve Environment; confirm Actions applied LiteLLM — **You**
+- [x] **2.3** LiteLLM Cloud Run + aliases `worker` / `reasoning` / `premium`; gateway auth; no public anonymous API — Cursor — `gateway/`, `infra/terraform/modules/gateway/`, `scripts/build-gateway.sh`, `scripts/seed-secrets.sh --gateway-only`. Terraform plan on [PR #2](https://github.com/hemang-ks/ks-paperclip/pull/2) succeeded.
+- [x] **2.4** Reuse Paperclip HTTP/OpenAI adapter if it exists; custom `litellm-http` only if needed — Cursor — pinned image has no `openai_compatible` adapter; built-in `http` is a webhook (not chat-completions). Reuse `gemini_local` (Gemini CLI) pointed at LiteLLM via `GOOGLE_GEMINI_BASE_URL` + gateway master key as `GEMINI_API_KEY`. No custom Paperclip adapter / no fork.
+- [x] **2.5** Merge PR; seed `litellm-master-key`; dispatch gateway-build; approve Environment; confirm Actions applied LiteLLM — **You** — PR #2 + pin PR #3 merged. Master key seeded. Cloud Run `litellm` Ready (`https://litellm-hdgnwapmwa-uw.a.run.app`, revision `litellm-00001-km8`).
 - [ ] **2.6** Point one test agent at `worker` — **You**
 - [ ] **2.7** Validate: Paperclip → LiteLLM → Gemini; Claude not default; no keys in Paperclip logs — **You**
 
