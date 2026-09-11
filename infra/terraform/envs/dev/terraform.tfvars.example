@@ -19,9 +19,16 @@ paperclip_schema_migration_count = "182"
 # Use your custom domain or the *.run.app URL after the first service revision exists.
 # paperclip_public_url = "https://paperclip.example.com"
 
+# LiteLLM gateway image pin — updated by `.github/workflows/gateway-build.yml`.
+# Cloud Run litellm is gated off until this is a real digest. Seed
+# litellm-master-key (`scripts/seed-secrets.sh --gateway-only`) before that apply.
+litellm_image_digest = "sha256:PENDING_RUN_GATEWAY_BUILD"
+
 # Optional overrides:
 # cloud_sql_tier                 = "db-g1-small"
 # create_hmac_key                = true   # needs roles/storage.hmacKeyAdmin; secret enters TF state
 # paperclip_cpu                  = "1"
 # paperclip_memory               = "4Gi"
 # paperclip_auth_disable_sign_up = false
+# litellm_import_secret_ids      = ["litellm-gemini-api-key"]
+# litellm_mount_anthropic        = false

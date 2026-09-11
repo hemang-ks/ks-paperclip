@@ -16,6 +16,7 @@ DIRS=(
   infra/terraform/modules/storage
   infra/terraform/modules/service
   infra/terraform/modules/jobs
+  infra/terraform/modules/gateway
   infra/terraform/envs/dev
   gateway/config
   scripts

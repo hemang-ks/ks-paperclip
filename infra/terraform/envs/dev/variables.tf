@@ -95,3 +95,35 @@ variable "paperclip_auth_disable_sign_up" {
   description = "Set true after first admin is claimed"
   default     = false
 }
+
+variable "litellm_image_digest" {
+  type        = string
+  description = "Immutable sha256 digest of the LiteLLM gateway image in Artifact Registry (set by gateway-build)"
+  default     = "sha256:PENDING_RUN_GATEWAY_BUILD"
+}
+
+variable "litellm_import_secret_ids" {
+  type        = list(string)
+  description = "Gateway secrets that already exist (created in 2.2). Terraform imports then manages them."
+  default     = ["litellm-gemini-api-key"]
+
+  validation {
+    condition = alltrue([
+      for id in var.litellm_import_secret_ids : contains(
+        [
+          "litellm-master-key",
+          "litellm-gemini-api-key",
+          "litellm-anthropic-api-key",
+        ],
+        id
+      )
+    ])
+    error_message = "litellm_import_secret_ids entries must be litellm-master-key, litellm-gemini-api-key, or litellm-anthropic-api-key."
+  }
+}
+
+variable "litellm_mount_anthropic" {
+  type        = bool
+  description = "Mount ANTHROPIC_API_KEY on LiteLLM. Requires an enabled version of litellm-anthropic-api-key."
+  default     = false
+}

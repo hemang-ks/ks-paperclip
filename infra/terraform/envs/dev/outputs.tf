@@ -81,3 +81,21 @@ output "auth_bootstrap_job_name" {
   description = "Cloud Run Job that mints the first-admin invite (null until image+URL gated)"
   value       = try(module.jobs[0].job_name, null)
 }
+
+output "gateway_secret_ids" {
+  value = module.gateway_secrets.secret_ids
+}
+
+output "litellm_image_ready" {
+  description = "True when litellm_image_digest looks like a real sha256 digest"
+  value       = local.litellm_image_ready
+}
+
+output "litellm_service_uri" {
+  description = "Internal Cloud Run URI for LiteLLM (null until gateway-build pin is applied)"
+  value       = try(module.gateway[0].uri, null)
+}
+
+output "litellm_service_name" {
+  value = try(module.gateway[0].service_name, null)
+}

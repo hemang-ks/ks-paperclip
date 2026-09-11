@@ -14,6 +14,9 @@
 # paperclip-secrets-master-key additionally requires
 #   --i-understand-this-destroys-all-stored-secrets
 # to overwrite.
+#
+# Phase 2 gateway key (no DB / HMAC):
+#   scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
 set -euo pipefail
 
 PROJECT_ID="${PROJECT_ID:-${GCP_PROJECT_ID:-}}"
@@ -23,6 +26,7 @@ DB_NAME="paperclip"
 FORCE=0
 DESTROY_MASTER_ACK=0
 SKIP_PROVIDER_KEYS=1
+GATEWAY_ONLY=0
 FROM_TERRAFORM=""
 DB_PASSWORD=""
 HMAC_ACCESS_ID=""
@@ -31,13 +35,19 @@ HMAC_SECRET=""
 usage() {
   cat <<'EOF'
 Usage: scripts/seed-secrets.sh --project-id ID --private-ip IP [options]
+       scripts/seed-secrets.sh --project-id ID --gateway-only
 
-Seed Secret Manager versions for Paperclip. Secret *containers* must already
-exist (Terraform secrets module). Does not print secret values.
+Seed Secret Manager versions. Secret *containers* must already exist
+(Terraform secrets module). Does not print secret values.
 
-Required:
+Required (Paperclip / 1.7):
   --project-id PROJECT_ID   GCP project (or PROJECT_ID / GCP_PROJECT_ID)
   --private-ip IP           Cloud SQL private IP (terraform output cloud_sql_private_ip)
+
+Required (LiteLLM / 2.3):
+  --gateway-only            Seed litellm-master-key only (no --private-ip).
+                            Does not touch Gemini/Anthropic (those are 2.2).
+                            Does not write Paperclip provider keys.
 
 Options:
   --from-terraform DIR      Read db_password (+ hmac if present) from
@@ -49,8 +59,8 @@ Options:
                             Required with --force to overwrite
                             paperclip-secrets-master-key
   --with-provider-keys      Interactively prompt for Anthropic/OpenAI/GitHub
-                            (default: skip — Phase 2)
-  --skip-provider-keys      Skip provider API keys (default)
+                            on Paperclip secrets (not the LiteLLM gateway)
+  --skip-provider-keys      Skip Paperclip provider API keys (default)
   -h, --help                Show help
 
 Environment (alternative to --from-terraform; values are never echoed):
@@ -88,12 +98,15 @@ while [[ $# -gt 0 ]]; do
     --i-understand-this-destroys-all-stored-secrets) DESTROY_MASTER_ACK=1; shift ;;
     --with-provider-keys) SKIP_PROVIDER_KEYS=0; shift ;;
     --skip-provider-keys) SKIP_PROVIDER_KEYS=1; shift ;;
+    --gateway-only) GATEWAY_ONLY=1; shift ;;
     *) die "unknown argument: $1 (see --help)" ;;
   esac
 done
 
 [[ -n "${PROJECT_ID}" ]] || die "PROJECT_ID required"
-[[ -n "${PRIVATE_IP}" ]] || die "--private-ip required (Cloud SQL private IP)"
+if [[ "${GATEWAY_ONLY}" -ne 1 ]]; then
+  [[ -n "${PRIVATE_IP}" ]] || die "--private-ip required (Cloud SQL private IP), or pass --gateway-only"
+fi
 command -v gcloud >/dev/null 2>&1 || die "gcloud not on PATH"
 command -v openssl >/dev/null 2>&1 || die "openssl not on PATH"
 command -v python3 >/dev/null 2>&1 || die "python3 not on PATH"
@@ -188,6 +201,27 @@ pw = urllib.parse.quote(os.environ["PASSWORD"], safe="")
 print(f"postgresql://{user}:{pw}@{ip}:5432/{name}?sslmode=require")
 '
 }
+
+seed_litellm_master_key() {
+  local required="${1:-1}"
+  if ! gcloud secrets describe "litellm-master-key" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+    if [[ "${required}" -eq 1 ]]; then
+      die "secret container 'litellm-master-key' does not exist — apply Terraform first (Phase 2.3)"
+    fi
+    info "skip: litellm-master-key (container not created yet)"
+    return 0
+  fi
+  log "Seeding litellm-master-key (value not printed)"
+  add_secret_version "litellm-master-key" "sk-$(openssl rand -hex 24)"
+}
+
+if [[ "${GATEWAY_ONLY}" -eq 1 ]]; then
+  seed_litellm_master_key 1
+  log "Done. Only secret names/versions were printed above — no secret values."
+  info "Next: dispatch gateway-build, merge the digest pin, approve Environment dev."
+  info "Do not paste the master key into chat. Paperclip will read it in Phase 2.4."
+  exit 0
+fi
 
 # ---------------------------------------------------------------------------
 # Resolve DB password + HMAC
@@ -284,6 +318,8 @@ if [[ "${SKIP_PROVIDER_KEYS}" -eq 0 ]]; then
 else
   info "skip: provider API keys (default). Pass --with-provider-keys to prompt."
 fi
+
+seed_litellm_master_key 0
 
 log "Done. Only secret names/versions were printed above — no secret values."
 info "Next: set PAPERCLIP_PUBLIC_URL, run image-promote, approve Environment dev apply, then auth-bootstrap job."

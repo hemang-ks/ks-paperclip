@@ -218,3 +218,44 @@ If the cert stays pending: wrong DNS, slow propagation, or a **CAA** record on
   cost-optimized plan (no ALB).
 - Mapping must be in the **same region** as the service (`us-west1` here).
 - Official docs: [Mapping custom domains](https://cloud.google.com/run/docs/mapping-custom-domains).
+
+## LiteLLM gateway (Phase 2.3)
+
+Cloud Run service `litellm`. Internal ingress (not curl-able from a laptop).
+Auth on `/v1/*` is `LITELLM_MASTER_KEY`. Provider keys stay on this service.
+
+### Order
+
+1. Merge the Phase 2.3 PR and approve Environment `dev`. First apply creates
+   gateway **secret containers** (imports `litellm-gemini-api-key` if it already
+   exists). Cloud Run `litellm` stays gated until the image digest is real.
+2. Seed the gateway master key (does not print the value):
+
+   ```bash
+   ./scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
+   ```
+
+3. Dispatch **gateway-build** (Actions). Merge the digest-pin PR it opens.
+4. Approve Environment `dev` again. That apply creates Cloud Run `litellm`.
+5. Confirm:
+
+   ```bash
+   gcloud run services describe litellm \
+     --region="$GCP_REGION" \
+     --project="$GCP_PROJECT_ID" \
+     --format='value(status.url,status.conditions)'
+   ```
+
+   The URL is internal. Do not expect `curl` from your laptop to succeed.
+   Paperclip in the same project can reach it (Phase 2.4 adapter).
+
+### Change a model without touching agents
+
+Edit `gateway/config/config.yaml` (`litellm_params.model` under `worker` /
+`reasoning` / `premium`), then gateway-build → pin PR → apply.
+
+### `premium` / Anthropic
+
+If `litellm-anthropic-api-key` has an enabled version, CI sets
+`litellm_mount_anthropic=true`. Until then, `premium` calls fail; `worker` and
+`reasoning` still work.

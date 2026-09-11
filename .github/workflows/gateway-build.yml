@@ -1,0 +1,93 @@
+# Build LiteLLM gateway image → Artifact Registry → digest pin PR
+#
+# Auth: Workload Identity Federation only — no SA JSON keys.
+# Repo variables: GCP_WIF_PROVIDER, GCP_DEPLOYER_SA, GCP_PROJECT_ID, GCP_REGION
+
+name: gateway-build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: gateway-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Configure Artifact Registry credentials for docker
+        run: gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+
+      - name: Build and push gateway image
+        id: build
+        run: |
+          chmod +x scripts/build-gateway.sh
+          ./scripts/build-gateway.sh \
+            --project-id "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --tag "${GITHUB_SHA}" \
+            --github-output
+
+      - name: Update digest pin in terraform.tfvars.example
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          python3 <<'PY'
+          import os, pathlib, re
+          path = pathlib.Path("infra/terraform/envs/dev/terraform.tfvars.example")
+          text = path.read_text()
+          value = os.environ["DIGEST"]
+          pattern = re.compile(r'(?m)^(\s*litellm_image_digest\s*=\s*)".*?"\s*$')
+          if pattern.search(text):
+              text = pattern.sub(rf'\1"{value}"', text)
+          else:
+              text = text.rstrip() + f'\n\n# Updated by gateway-build workflow\nlitellm_image_digest = "{value}"\n'
+          path.write_text(text if text.endswith("\n") else text + "\n")
+          print(f"updated {path}")
+          PY
+
+      - name: Create pull request for digest pin
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            pin LiteLLM gateway image (${{ steps.build.outputs.digest }})
+          branch: chore/pin-litellm-${{ github.sha }}
+          delete-branch: true
+          title: "pin LiteLLM gateway image"
+          body: |
+            ## Gateway image pin
+
+            | | |
+            |---|---|
+            | Digest | `${{ steps.build.outputs.digest }}` |
+            | Digest ref | `${{ steps.build.outputs.digest_ref }}` |
+
+            Seed `litellm-master-key` (`scripts/seed-secrets.sh --gateway-only`)
+            **before** approving Environment `dev` if this pin creates Cloud Run
+            `litellm` for the first time. An empty secret version will fail startup.
+
+            After merge, Terraform apply (Environment `dev`) creates or rolls the
+            LiteLLM service.
+          add-paths: |
+            infra/terraform/envs/dev/terraform.tfvars.example

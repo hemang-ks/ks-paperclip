@@ -14,9 +14,12 @@ value to a password manager. Exclude it from routine rotation.
 
 ## IAM
 
-Each secret grants `roles/secretmanager.secretAccessor` to the Paperclip runtime
-service account **individually** (no project-level Secret Manager role).
+Each secret grants `roles/secretmanager.secretAccessor` to the runtime service
+account passed into the module **individually** (no project-level Secret Manager
+role). Instantiate twice if Paperclip and LiteLLM must not share provider keys.
 
 ## Default secret IDs
 
-See `variables.tf`. Model provider keys may stay empty until Phase 2.
+See `variables.tf` for the Paperclip list. Gateway secrets (`litellm-*`) are a
+second module call in `envs/dev` (Phase 2.3). Model provider **values** stay
+out of Terraform.
