@@ -234,6 +234,17 @@ module "service" {
   memory                = var.paperclip_memory
   auth_disable_sign_up  = var.paperclip_auth_disable_sign_up
   labels                = local.labels
+  extra_env = local.litellm_image_ready ? {
+    # Gemini CLI (gemini_local) talks to LiteLLM, not Google directly.
+    LITELLM_BASE_URL       = module.gateway[0].uri
+    GOOGLE_GEMINI_BASE_URL = module.gateway[0].uri
+  } : {}
+  extra_secret_env = local.litellm_image_ready ? {
+    # Gateway auth only — not the Google Gemini API key (that stays on LiteLLM).
+    # GEMINI_API_KEY is the env name Gemini CLI expects when using a proxy.
+    LITELLM_MASTER_KEY = module.gateway_secrets.secret_ids["litellm-master-key"]
+    GEMINI_API_KEY     = module.gateway_secrets.secret_ids["litellm-master-key"]
+  } : {}
 
   depends_on = [
     module.database,
@@ -241,6 +252,7 @@ module "service" {
     module.storage,
     module.network,
     google_project_iam_member.paperclip_sql_client,
+    google_secret_manager_secret_iam_member.paperclip_reads_litellm_master,
   ]
 }
 

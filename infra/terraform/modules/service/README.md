@@ -28,6 +28,10 @@ Plain: deployment mode/URLs, storage endpoint/bucket/region, heartbeat, auto-mig
 Optional provider keys (`ANTHROPIC_API_KEY`, etc.) are off by default in Phase 1 —
 agents go through LiteLLM in Phase 2.
 
+Phase 2.4 mounts `LITELLM_BASE_URL` / `GOOGLE_GEMINI_BASE_URL` (plain) and
+`LITELLM_MASTER_KEY` / `GEMINI_API_KEY` (same Secret Manager secret — gateway
+auth, not the Google Gemini key). `extra_secret_env` is the hook for those.
+
 ## Public access
 
 `allow_unauthenticated=true` sets `invoker_iam_disabled` (no `allUsers` IAM). Paperclip’s
