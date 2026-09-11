@@ -34,6 +34,7 @@ jobs:
       GCP_DEPLOYER_SA: ${{ vars.GCP_DEPLOYER_SA }}
       UPLOADS_BUCKET_NAME: ${{ vars.UPLOADS_BUCKET_NAME }}
       PAPERCLIP_PUBLIC_URL: ${{ vars.PAPERCLIP_PUBLIC_URL }}
+      PAPERCLIP_AUTH_DISABLE_SIGN_UP: ${{ vars.PAPERCLIP_AUTH_DISABLE_SIGN_UP }}
       TF_IN_AUTOMATION: "true"
 
     steps:
@@ -57,14 +58,16 @@ jobs:
           terraform_version: "1.11.4"
           terraform_wrapper: false
 
+      # Check committed HCL only. ci-prepare-tfvars.sh writes gitignored
+      # terraform.tfvars; linting that file fails fmt -check (exit 3).
+      - name: terraform fmt -check
+        run: terraform fmt -check -recursive ../..
+
       - name: Prepare tfvars
         working-directory: .
         run: |
           chmod +x scripts/ci-prepare-tfvars.sh
           ./scripts/ci-prepare-tfvars.sh
-
-      - name: terraform fmt -check
-        run: terraform fmt -check -recursive ../..
 
       - name: terraform init
         run: |

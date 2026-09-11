@@ -6,7 +6,7 @@ applies them; do not run `terraform apply` locally.
 | Path | Purpose |
 |---|---|
 | `terraform/versions.tf` | Shared Terraform / provider pins (`>= 1.9`, `hashicorp/google ~> 6.0`) |
-| `terraform/modules/` | Reusable modules (network, database, registry, secrets, storage, service, jobs) |
+| `terraform/modules/` | Reusable modules (network, database, registry, secrets, storage, service, jobs, gateway) |
 | `terraform/envs/dev/` | Root module for the single `dev` environment (foundation + gated service/jobs) |
 
 No `edge` / ALB module — out of scope for the cost-optimized plan. No Paperclip

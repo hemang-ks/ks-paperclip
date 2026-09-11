@@ -23,11 +23,12 @@ Paperclip on Cloud Run → adapter → LiteLLM → Gemini Flash (default) / Gemi
 | `scripts/bootstrap-gcp.sh` | One-time GCP bootstrap for Terraform + Actions (Phase 0) |
 | `scripts/scaffold-dirs.sh` | Idempotent Phase 1 directory scaffold |
 | `scripts/promote-image.sh` | Mirror Paperclip GHCR → Artifact Registry; print digest + schema labels |
+| `scripts/build-gateway.sh` | Build LiteLLM gateway image → Artifact Registry; print digest |
 | `scripts/ci-prepare-tfvars.sh` | Build `envs/dev/terraform.tfvars` in CI from repo variables + image pin |
 | `scripts/smoke-test.sh` | `GET /api/health` smoke check after deploy |
-| `scripts/seed-secrets.sh` | Seed Secret Manager values (never prints secrets) |
+| `scripts/seed-secrets.sh` | Seed Secret Manager values (never prints secrets). `--gateway-only` for `litellm-master-key` |
 | `docs/` | Bootstrap notes, runbook (incl. Squarespace custom domain), architecture runbook |
 | `config/` | Bootstrap `config.json` template for first admin |
-| `infra/` | Terraform modules + `envs/dev` (Phase 1) |
-| `gateway/` | LiteLLM config (Phase 2; scaffold only) |
-| `.github/workflows/` | CI: `image-promote`, `terraform-plan`, `terraform-apply` (Environment `dev`), `deploy` |
+| `infra/` | Terraform modules + `envs/dev` |
+| `gateway/` | LiteLLM config + Dockerfile (Phase 2) |
+| `.github/workflows/` | CI: `image-promote`, `gateway-build`, `terraform-plan`, `terraform-apply` (Environment `dev`), `deploy` |

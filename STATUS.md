@@ -9,9 +9,9 @@ Working plan (why / constraints): [`.cursor/plans/paperclip-cost-optimized-execu
 | | |
 |---|---|
 | Current phase | **2 — LLM gateway (first milestone)** |
-| Next task | **2.1** Choose Gemini auth: API key (faster) vs Vertex IAM (later) — **You** |
+| Next task | **2.4** Reuse Paperclip HTTP/OpenAI adapter if it exists; custom `litellm-http` only if needed — Cursor |
 | First milestone | Phase 1 + Phase 2 (Gemini `worker`) |
-| Do not redo | Phase L–1 done. Image pinned (`sha-e55d702`). Service at `https://paperclip.legotick.com`. Signup disabled. First admin claimed. |
+| Do not redo | Phase L–1 done. Image pinned (`sha-e55d702`). Service at `https://paperclip.legotick.com`. Signup disabled. First admin claimed. Gemini auth = API key. Gateway secrets seeded (`litellm-gemini-api-key`). |
 
 When a task finishes, mark it `[x]` in this file in the same change set. Completing work without updating this file is incomplete.
 
@@ -73,11 +73,11 @@ Phase 1 complete. Default agents still fail until Phase 2 (`claude_local` with n
 
 Goal: Paperclip calls LiteLLM, LiteLLM calls Gemini `worker`. No public anonymous gateway. Provider keys stay on LiteLLM, not in Paperclip.
 
-- [ ] **2.1** Gemini auth: API key (faster) vs Vertex IAM (later) — **You**
-- [ ] **2.2** Put Gemini (and optional Anthropic) keys in Secret Manager; do not paste into chat — **You**
-- [ ] **2.3** LiteLLM Cloud Run + aliases `worker` / `reasoning` / `premium`; gateway auth; no public anonymous API — Cursor
+- [x] **2.1** Gemini auth: API key (faster) vs Vertex IAM (later) — **You** — API key
+- [x] **2.2** Put Gemini (and optional Anthropic) keys in Secret Manager; do not paste into chat — **You** — `litellm-gemini-api-key` (and optional `litellm-anthropic-api-key`)
+- [x] **2.3** LiteLLM Cloud Run + aliases `worker` / `reasoning` / `premium`; gateway auth; no public anonymous API — Cursor — `gateway/`, `infra/terraform/modules/gateway/`, `scripts/build-gateway.sh`, `scripts/seed-secrets.sh --gateway-only`
 - [ ] **2.4** Reuse Paperclip HTTP/OpenAI adapter if it exists; custom `litellm-http` only if needed — Cursor
-- [ ] **2.5** Merge PR; approve Environment; confirm Actions applied LiteLLM — **You**
+- [ ] **2.5** Merge PR; seed `litellm-master-key`; dispatch gateway-build; approve Environment; confirm Actions applied LiteLLM — **You**
 - [ ] **2.6** Point one test agent at `worker` — **You**
 - [ ] **2.7** Validate: Paperclip → LiteLLM → Gemini; Claude not default; no keys in Paperclip logs — **You**
 

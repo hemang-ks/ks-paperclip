@@ -51,7 +51,7 @@ resource "google_service_account" "litellm_runtime" {
   project      = var.project_id
   account_id   = "litellm-runtime"
   display_name = "LiteLLM Cloud Run runtime"
-  description  = "Placeholder SA for Phase 2 LiteLLM gateway"
+  description  = "Least-privilege SA for the LiteLLM Cloud Run gateway"
 
   depends_on = [google_project_service.required]
 }
@@ -142,6 +142,52 @@ module "secrets" {
   depends_on = [google_project_service.required]
 }
 
+# Gateway secrets are a separate module instance so Paperclip does not get
+# secretAccessor on Gemini/Anthropic keys. 2.2 created litellm-gemini-api-key
+# (and maybe anthropic) out of band — import those IDs via
+# litellm_import_secret_ids so apply does not try to create them twice.
+locals {
+  gateway_secret_ids = [
+    "litellm-master-key",
+    "litellm-gemini-api-key",
+    "litellm-anthropic-api-key",
+  ]
+}
+
+module "gateway_secrets" {
+  source = "../../modules/secrets"
+
+  project_id                    = var.project_id
+  secret_ids                    = local.gateway_secret_ids
+  runtime_service_account_email = google_service_account.litellm_runtime.email
+  labels                        = merge(local.labels, { component = "gateway" })
+
+  depends_on = [google_project_service.required]
+}
+
+import {
+  for_each = toset(var.litellm_import_secret_ids)
+  to       = module.gateway_secrets.google_secret_manager_secret.this[each.value]
+  id       = "projects/${var.project_id}/secrets/${each.value}"
+}
+
+# Paperclip needs the gateway master key in Phase 2.4 (HTTP adapter). It must
+# not read provider keys.
+resource "google_secret_manager_secret_iam_member" "paperclip_reads_litellm_master" {
+  project   = var.project_id
+  secret_id = module.gateway_secrets.secret_ids["litellm-master-key"]
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.paperclip_runtime.email}"
+}
+
+resource "google_artifact_registry_repository_iam_member" "litellm_runtime_reader" {
+  project    = var.project_id
+  location   = var.region
+  repository = module.registry.repository_name
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${google_service_account.litellm_runtime.email}"
+}
+
 module "storage" {
   source = "../../modules/storage"
 
@@ -220,5 +266,35 @@ module "jobs" {
     module.storage,
     module.network,
     google_project_iam_member.paperclip_sql_client,
+  ]
+}
+
+# ---------------------------------------------------------------------------
+# Cloud Run LiteLLM (Phase 2.3)
+# Created only when litellm_image_digest is a real sha256 (after gateway-build).
+# Seed litellm-master-key before that apply — Cloud Run will not start if the
+# secret has no enabled version.
+# ---------------------------------------------------------------------------
+
+locals {
+  litellm_image_ready = can(regex("^sha256:[0-9a-f]{64}$", var.litellm_image_digest))
+  litellm_image       = "${module.registry.repository_url}/litellm@${var.litellm_image_digest}"
+}
+
+module "gateway" {
+  count  = local.litellm_image_ready ? 1 : 0
+  source = "../../modules/gateway"
+
+  project_id            = var.project_id
+  region                = var.region
+  image                 = local.litellm_image
+  service_account_email = google_service_account.litellm_runtime.email
+  secret_ids            = module.gateway_secrets.secret_ids
+  mount_anthropic       = var.litellm_mount_anthropic
+  labels                = merge(local.labels, { component = "gateway" })
+
+  depends_on = [
+    module.gateway_secrets,
+    google_artifact_registry_repository_iam_member.litellm_runtime_reader,
   ]
 }

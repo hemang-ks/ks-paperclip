@@ -1,0 +1,48 @@
+# LiteLLM proxy config (Phase 2).
+# Paperclip agents should call these aliases, not provider model IDs.
+# Change the upstream model under litellm_params.model; rebuild/push the
+# gateway image (gateway-build workflow) — no Paperclip agent edits needed.
+#
+# Secrets come from the environment (Cloud Run → Secret Manager). Never put
+# provider keys in this file.
+
+model_list:
+  - model_name: worker
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+      max_retries: 2
+      max_tokens: 2048
+    model_info:
+      mode: chat
+
+  - model_name: reasoning
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 120
+      max_retries: 1
+      max_tokens: 4096
+    model_info:
+      mode: chat
+
+  - model_name: premium
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 120
+      max_retries: 1
+      max_tokens: 4096
+    model_info:
+      mode: chat
+
+litellm_settings:
+  drop_params: true
+  num_retries: 1
+  request_timeout: 120
+  json_logs: true
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  background_health_checks: false
