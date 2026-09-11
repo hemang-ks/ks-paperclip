@@ -8,10 +8,10 @@ Working plan (why / constraints): [`.cursor/plans/paperclip-cost-optimized-execu
 
 | | |
 |---|---|
-| Current phase | **1 — Paperclip foundation (CI applies)** |
-| Next task | **1.9** Approve Environment `dev` apply so signup stays disabled — **You** |
+| Current phase | **2 — LLM gateway (first milestone)** |
+| Next task | **2.1** Choose Gemini auth: API key (faster) vs Vertex IAM (later) — **You** |
 | First milestone | Phase 1 + Phase 2 (Gemini `worker`) |
-| Do not redo | Phase L–0 done. 1.1–1.8 done. Image pinned (`sha-e55d702`). Service Ready. First admin claimed. Custom domain live. |
+| Do not redo | Phase L–1 done. Image pinned (`sha-e55d702`). Service at `https://paperclip.legotick.com`. Signup disabled. First admin claimed. |
 
 When a task finishes, mark it `[x]` in this file in the same change set. Completing work without updating this file is incomplete.
 
@@ -62,14 +62,16 @@ Goal: UI up, Postgres durable, secrets in Secret Manager. No LiteLLM yet. You ne
 - [x] **1.6** GitHub Actions: `terraform-plan.yml`, `terraform-apply.yml` (Environment `dev` gate), `deploy.yml`. WIF, no SA JSON keys — Cursor — `.github/workflows/`, `scripts/ci-prepare-tfvars.sh`, `scripts/smoke-test.sh`
 - [x] **1.7** Seed Paperclip secret values out of band (model keys in Phase 2) — **You**
 - [x] **1.8** Merge infra PR; approve Environment `dev` so Actions applies — **You**
-- [ ] **1.9** Dispatch image-promote (or merge pin PR); claim first admin; disable signup — **You** — pin merged (`sha-e55d702`). First admin claimed (`bootstrapStatus=ready`). Custom domain live. `PAPERCLIP_AUTH_DISABLE_SIGN_UP=true` set; **approve the waiting Environment `dev` apply** so Terraform keeps signup disabled.
-- [ ] **1.10** Validate: UI, company, restart, data persists, logs have no secrets — **You**
+- [x] **1.9** Dispatch image-promote (or merge pin PR); claim first admin; disable signup — **You** — pin merged (`sha-e55d702`). First admin claimed. Custom domain `https://paperclip.legotick.com` live. `PAPERCLIP_AUTH_DISABLE_SIGN_UP=true` applied.
+- [x] **1.10** Validate: UI, company, restart, data persists, logs have no secrets — **You**
 
-Default agents may fail until Phase 2 (`claude_local` with no key). Expected.
+Phase 1 complete. Default agents still fail until Phase 2 (`claude_local` with no key). Expected.
 
 ---
 
 ## Phase 2 — LLM gateway (first milestone)
+
+Goal: Paperclip calls LiteLLM, LiteLLM calls Gemini `worker`. No public anonymous gateway. Provider keys stay on LiteLLM, not in Paperclip.
 
 - [ ] **2.1** Gemini auth: API key (faster) vs Vertex IAM (later) — **You**
 - [ ] **2.2** Put Gemini (and optional Anthropic) keys in Secret Manager; do not paste into chat — **You**
