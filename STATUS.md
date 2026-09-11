@@ -9,9 +9,9 @@ Working plan (why / constraints): [`.cursor/plans/paperclip-cost-optimized-execu
 | | |
 |---|---|
 | Current phase | **1 — Paperclip foundation (CI applies)** |
-| Next task | **1.9** Disable signup after first admin (**You**). Public URL is switching to `https://paperclip.legotick.com`. |
+| Next task | **1.9** Disable signup (`PAPERCLIP_AUTH_DISABLE_SIGN_UP=true`, then approve Environment `dev` apply) — **You** |
 | First milestone | Phase 1 + Phase 2 (Gemini `worker`) |
-| Do not redo | Phase L–0 done. 1.1–1.8 done. Image pinned (`sha-e55d702`). Cloud Run `paperclip` Ready. Domain mapping still waits on Squarespace verification. |
+| Do not redo | Phase L–0 done. 1.1–1.8 done. Image pinned (`sha-e55d702`). Service Ready. First admin claimed. Custom domain live. |
 
 When a task finishes, mark it `[x]` in this file in the same change set. Completing work without updating this file is incomplete.
 
@@ -62,7 +62,7 @@ Goal: UI up, Postgres durable, secrets in Secret Manager. No LiteLLM yet. You ne
 - [x] **1.6** GitHub Actions: `terraform-plan.yml`, `terraform-apply.yml` (Environment `dev` gate), `deploy.yml`. WIF, no SA JSON keys — Cursor — `.github/workflows/`, `scripts/ci-prepare-tfvars.sh`, `scripts/smoke-test.sh`
 - [x] **1.7** Seed Paperclip secret values out of band (model keys in Phase 2) — **You**
 - [x] **1.8** Merge infra PR; approve Environment `dev` so Actions applies — **You**
-- [ ] **1.9** Dispatch image-promote (or merge pin PR); claim first admin; disable signup — **You** — pin merged (`sha-e55d702`). Custom domain mapping and cert are ready. `PAPERCLIP_PUBLIC_URL` is `https://paperclip.legotick.com` (approve the Environment `dev` apply so Terraform matches). Disable signup after the admin account exists.
+- [ ] **1.9** Dispatch image-promote (or merge pin PR); claim first admin; disable signup — **You** — pin merged (`sha-e55d702`). Auth-bootstrap invite used; `GET /api/health` is `bootstrapStatus=ready`. Company created. Chief of Staff `claude_local` run failed with no Anthropic key — expected until Phase 2. Custom domain `https://paperclip.legotick.com` mapped (Squarespace CNAME `paperclip` → `ghs.googlehosted.com`), cert Ready, public URL applied. **Left:** set `PAPERCLIP_AUTH_DISABLE_SIGN_UP=true` and approve apply.
 - [ ] **1.10** Validate: UI, company, restart, data persists, logs have no secrets — **You**
 
 Default agents may fail until Phase 2 (`claude_local` with no key). Expected.
