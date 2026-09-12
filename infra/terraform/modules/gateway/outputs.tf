@@ -7,7 +7,7 @@ output "service_id" {
 }
 
 output "uri" {
-  description = "HTTPS URL of the Cloud Run service (internal ingress — not reachable from the public internet)"
+  description = "HTTPS URL of the Cloud Run service (public ingress; LITELLM_MASTER_KEY required)"
   value       = google_cloud_run_v2_service.litellm.uri
 }
 

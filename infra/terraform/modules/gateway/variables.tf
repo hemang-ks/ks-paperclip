@@ -78,8 +78,8 @@ variable "max_instance_count" {
 
 variable "ingress" {
   type        = string
-  description = "INTERNAL_ONLY: same-project Cloud Run (Paperclip) can call; internet cannot."
-  default     = "INGRESS_TRAFFIC_INTERNAL_ONLY"
+  description = "ALL: Paperclip uses Direct VPC PRIVATE_RANGES_ONLY, so *.run.app egresses to the public internet. INTERNAL_ONLY then 404s. Auth is LITELLM_MASTER_KEY, not anonymous."
+  default     = "INGRESS_TRAFFIC_ALL"
 }
 
 variable "labels" {

@@ -246,7 +246,8 @@ Auth on `/v1/*` is `LITELLM_MASTER_KEY`. Provider keys stay on this service.
      --format='value(status.url,status.conditions)'
    ```
 
-   The URL is internal. Do not expect `curl` from your laptop to succeed.
+   The URL is publicly reachable. Unauthenticated calls still fail; LiteLLM
+   requires `LITELLM_MASTER_KEY`. Do not paste that key into chat.
 
 ## Paperclip → LiteLLM (Phase 2.4 / 2.6)
 

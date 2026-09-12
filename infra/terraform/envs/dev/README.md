@@ -16,8 +16,9 @@ Cloud Run `paperclip` / bootstrap job: Phase 1.4–1.5. Created when a real
 image digest **and** `paperclip_public_url` are set (same gate).
 
 Cloud Run `litellm`: Phase 2.3. Created when `litellm_image_digest` is a real
-sha256 (after `gateway-build`). Ingress is internal; `LITELLM_MASTER_KEY` is
-required on `/v1/*`.
+sha256 (after `gateway-build`). Ingress is all (Paperclip `PRIVATE_RANGES_ONLY`
+cannot reach `INTERNAL_ONLY` `*.run.app`); `LITELLM_MASTER_KEY` is required on
+`/v1/*`.
 
 ## Apply path
 
