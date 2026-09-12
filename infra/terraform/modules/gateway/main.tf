@@ -1,10 +1,10 @@
 # Cloud Run v2 LiteLLM gateway.
 #
 # Auth: LITELLM_MASTER_KEY on /v1/* (no anonymous API).
-# Exposure: internal ingress + invoker_iam_disabled. Paperclip’s HTTP adapter
-# sends Authorization: Bearer <master key>. A Cloud Run identity token would
-# collide on that header, so IAM invoker is not the app gate. Internal ingress
-# still blocks the public internet.
+# Exposure: all ingress + invoker_iam_disabled. Paperclip Direct VPC uses
+# PRIVATE_RANGES_ONLY, so *.run.app goes out the public frontend; INTERNAL_ONLY
+# returns Google HTML 404. A Cloud Run identity token would collide with
+# Authorization: Bearer <master key>, so IAM invoker is not the app gate.
 #
 # Do not set PORT — Cloud Run injects it to match container_port (4000).
 

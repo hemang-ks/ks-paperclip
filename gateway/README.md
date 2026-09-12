@@ -26,10 +26,10 @@ Until then, `premium` calls fail; `worker` / `reasoning` still work.
 ## Auth and exposure
 
 - `LITELLM_MASTER_KEY` is required on every `/v1/*` call (`Authorization: Bearer …`).
-- Ingress is **internal** (same GCP project). The internet cannot reach the
-  service. Cloud Run invoker IAM is disabled so Paperclip’s HTTP/OpenAI adapter
-  can send the master key in `Authorization` (GCP identity tokens would collide
-  with that header).
+- Ingress is **all**. Paperclip Direct VPC uses `PRIVATE_RANGES_ONLY`, so calls to
+  this `*.run.app` URL leave via the public frontend; `INTERNAL_ONLY` returns
+  Google’s HTML 404. Invoker IAM is disabled so Paperclip can send the master
+  key in `Authorization` (a GCP identity token would collide on that header).
 - Probe paths `/health/liveliness` and `/health/readiness` are unauthenticated
   by LiteLLM design; they do not call providers.
 

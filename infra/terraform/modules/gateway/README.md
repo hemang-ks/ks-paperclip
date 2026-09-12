@@ -6,7 +6,7 @@ LiteLLM proxy. Provider keys stay on this service.
 
 | Setting | Value | Why |
 |---|---|---|
-| Ingress | `INTERNAL_ONLY` | No public anonymous API. Same-project Cloud Run (Paperclip) can still call the `*.run.app` URL. |
+| Ingress | `ALL` | Paperclip `PRIVATE_RANGES_ONLY` sends `*.run.app` to the public frontend; `INTERNAL_ONLY` 404s. Not anonymous — `LITELLM_MASTER_KEY` is required. |
 | Invoker IAM | disabled | Paperclip HTTP/OpenAI adapter sends `Authorization: Bearer <LITELLM_MASTER_KEY>`. A GCP identity token would collide on that header. |
 | Min instances | **0** | No heartbeat scheduler. Scale-to-zero is fine. |
 | CPU idle | true | Proxy; no always-on loop. |
