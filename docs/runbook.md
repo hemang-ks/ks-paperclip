@@ -257,34 +257,36 @@ OpenAI chat-completions, so it is not used against LiteLLM.
 Reuse **`gemini_local`** (Gemini CLI in the Paperclip container). Cloud Run
 `paperclip` is given:
 
-| Env | Source |
+| Env / file | Source |
 |---|---|
 | `GOOGLE_GEMINI_BASE_URL` / `LITELLM_BASE_URL` | LiteLLM Cloud Run URI |
 | `GEMINI_API_KEY` / `LITELLM_MASTER_KEY` | Secret `litellm-master-key` (gateway auth, **not** the Google Gemini key) |
+| `GEMINI_CLI_TRUST_WORKSPACE=true` | Headless folder trust (otherwise YOLO is forced off) |
+| `/etc/gemini-cli/settings.json` | Selects `gemini-api-key`. `GEMINI_API_KEY` alone is not enough — the CLI exits `Invalid auth method selected.` |
 
-The Google Gemini key stays only on LiteLLM.
+The Google Gemini key stays only on LiteLLM. Working directory / `cwd` is a
+**legacy UI field** and is hidden; Paperclip uses a managed workspace under
+`/paperclip/instances/default/workspaces/<agent-id>`. That is expected.
 
-Merge the 2.4 PR and approve Environment `dev` so Paperclip picks up those env
-vars. Then configure **one** test agent in the UI:
+Configure **one** test agent in the UI (Chief of Staff is fine — switch it off
+`claude_local`):
 
 1. Open `https://paperclip.legotick.com`
-2. Create or edit an agent (not the default `claude_local` Chief of Staff)
-3. Adapter: **`gemini_local`**
+2. Edit the agent
+3. Adapter: **Gemini CLI** (`gemini_local`)
 4. Set:
 
 | Field | Value |
 |---|---|
-| `cwd` | `/paperclip/agents/worker` |
-| `model` | `worker` |
-| `engine` | `cli` |
-| `yolo` | `true` |
+| Engine | **`cli` / Gemini CLI** (not Auto, not ACP) |
+| Model | `worker` if the field accepts custom text; otherwise the Gemini dropdown is OK after the native IDs are on LiteLLM |
 
-Do not put a Gemini/Anthropic key in the agent config. `model: worker` is the
-LiteLLM alias (Flash). Use `reasoning` or `premium` later; `premium` needs the
-Anthropic secret mounted on LiteLLM.
+Do not put a Gemini/Anthropic key in the agent config. Heartbeats may apply the
+built-in **`cheap`** profile (`gemini-2.5-flash-lite`); that is OK once LiteLLM
+lists that model name.
 
-Default `claude_local` agents stay without an Anthropic key on Paperclip — that
-is expected. Claude is not the default path.
+Default remaining `claude_local` agents stay without an Anthropic key on
+Paperclip — that is expected. Claude is not the default path.
 
 ### Change a model without touching agents
 

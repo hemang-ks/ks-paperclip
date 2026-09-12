@@ -180,6 +180,40 @@ resource "google_secret_manager_secret_iam_member" "paperclip_reads_litellm_mast
   member    = "serviceAccount:${google_service_account.paperclip_runtime.email}"
 }
 
+# Gemini CLI ignores GEMINI_API_KEY until settings.json selects gemini-api-key
+# ("Invalid auth method selected." otherwise). Cloud Run can only inject files
+# from Secret Manager; this JSON is not a credential.
+resource "google_secret_manager_secret" "gemini_cli_settings" {
+  project   = var.project_id
+  secret_id = "paperclip-gemini-cli-settings"
+  labels    = merge(local.labels, { component = "paperclip" })
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret_version" "gemini_cli_settings" {
+  secret = google_secret_manager_secret.gemini_cli_settings.id
+  secret_data = jsonencode({
+    selectedAuthType = "gemini-api-key"
+    security = {
+      auth = {
+        selectedType = "gemini-api-key"
+      }
+    }
+  })
+}
+
+resource "google_secret_manager_secret_iam_member" "paperclip_reads_gemini_cli_settings" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.gemini_cli_settings.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.paperclip_runtime.email}"
+}
+
 resource "google_artifact_registry_repository_iam_member" "litellm_runtime_reader" {
   project    = var.project_id
   location   = var.region
@@ -236,8 +270,10 @@ module "service" {
   labels                = local.labels
   extra_env = local.litellm_image_ready ? {
     # Gemini CLI (gemini_local) talks to LiteLLM, not Google directly.
-    LITELLM_BASE_URL       = module.gateway[0].uri
-    GOOGLE_GEMINI_BASE_URL = module.gateway[0].uri
+    LITELLM_BASE_URL                = module.gateway[0].uri
+    GOOGLE_GEMINI_BASE_URL          = module.gateway[0].uri
+    GEMINI_CLI_TRUST_WORKSPACE      = "true"
+    GEMINI_CLI_SYSTEM_SETTINGS_PATH = "/etc/gemini-cli/settings.json"
   } : {}
   extra_secret_env = local.litellm_image_ready ? {
     # Gateway auth only — not the Google Gemini API key (that stays on LiteLLM).
@@ -245,6 +281,14 @@ module "service" {
     LITELLM_MASTER_KEY = module.gateway_secrets.secret_ids["litellm-master-key"]
     GEMINI_API_KEY     = module.gateway_secrets.secret_ids["litellm-master-key"]
   } : {}
+  secret_file_mounts = local.litellm_image_ready ? [
+    {
+      name       = "gemini-cli-settings"
+      secret_id  = google_secret_manager_secret.gemini_cli_settings.secret_id
+      mount_path = "/etc/gemini-cli"
+      file_name  = "settings.json"
+    },
+  ] : []
 
   depends_on = [
     module.database,
@@ -253,6 +297,8 @@ module "service" {
     module.network,
     google_project_iam_member.paperclip_sql_client,
     google_secret_manager_secret_iam_member.paperclip_reads_litellm_master,
+    google_secret_manager_secret_iam_member.paperclip_reads_gemini_cli_settings,
+    google_secret_manager_secret_version.gemini_cli_settings,
   ]
 }
 

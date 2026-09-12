@@ -153,6 +153,14 @@ resource "google_cloud_run_v2_service" "paperclip" {
         }
       }
 
+      dynamic "volume_mounts" {
+        for_each = var.secret_file_mounts
+        content {
+          name       = volume_mounts.value.name
+          mount_path = volume_mounts.value.mount_path
+        }
+      }
+
       # Cloud Run caps startup probe budget at ~240s. Auto-migrate (~seconds in L4)
       # fits; a dedicated migrate Job is not required for v1.
       startup_probe {
@@ -175,6 +183,20 @@ resource "google_cloud_run_v2_service" "paperclip" {
         timeout_seconds       = 5
         period_seconds        = 30
         failure_threshold     = 3
+      }
+    }
+
+    dynamic "volumes" {
+      for_each = var.secret_file_mounts
+      content {
+        name = volumes.value.name
+        secret {
+          secret = volumes.value.secret_id
+          items {
+            path    = volumes.value.file_name
+            version = "latest"
+          }
+        }
       }
     }
 

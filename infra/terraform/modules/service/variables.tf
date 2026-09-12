@@ -141,6 +141,17 @@ variable "extra_secret_env" {
   default     = {}
 }
 
+variable "secret_file_mounts" {
+  type = list(object({
+    name       = string
+    secret_id  = string
+    mount_path = string
+    file_name  = string
+  }))
+  description = "Secret Manager files mounted into the container (Cloud Run secret volumes). Phase 2: Gemini CLI settings.json."
+  default     = []
+}
+
 variable "labels" {
   type    = map(string)
   default = {}
