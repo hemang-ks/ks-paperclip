@@ -10,10 +10,14 @@ Manager → Cloud Run), not on Paperclip.
 | `worker` | `gemini/gemini-2.5-flash` | Default / cheap |
 | `reasoning` | `gemini/gemini-2.5-pro` | Harder questions |
 | `premium` | `anthropic/claude-sonnet-4-5` | Escalation only |
+| `gemini-2.5-flash-lite` / `gemini-2.5-flash` / `gemini-2.5-pro` | same Gemini models | Native IDs from Gemini CLI / Paperclip `cheap` profile |
 
-Paperclip agents should use the alias names. To swap a provider model, edit
-`config/config.yaml`, run **gateway-build**, merge the digest pin, approve
-Environment `dev`. No agent config change.
+Paperclip agents should use the alias names when the UI allows a custom model.
+The Gemini CLI dropdown and Paperclip's default `cheap` wake profile send native
+IDs instead; those are listed so the proxy does not 404.
+
+To swap a provider model, edit `config/config.yaml`, run **gateway-build**, merge
+the digest pin, approve Environment `dev`.
 
 `premium` needs `litellm-anthropic-api-key` seeded **and** an enabled secret
 version (CI sets `litellm_mount_anthropic=true` when that version exists).
@@ -36,9 +40,10 @@ Do not grant `allUsers`. Do not put Gemini/Anthropic keys on Paperclip.
 Pinned Paperclip (`sha-e55d702`) has no OpenAI-compatible adapter. The built-in
 `http` type is a webhook, not `/v1/chat/completions`.
 
-**Reuse `gemini_local`.** After the 2.4 apply, Cloud Run `paperclip` has
-`GOOGLE_GEMINI_BASE_URL` (this service) and `GEMINI_API_KEY` set to the LiteLLM
-master key. Point a test agent at alias `worker` (see `docs/runbook.md`).
+**Reuse `gemini_local`.** Cloud Run `paperclip` has `GOOGLE_GEMINI_BASE_URL`
+(this service), `GEMINI_API_KEY` set to the LiteLLM master key, plus Gemini CLI
+`settings.json` selecting `gemini-api-key` and `GEMINI_CLI_TRUST_WORKSPACE=true`.
+Point a test agent at engine `cli` (see `docs/runbook.md`).
 
 ## Image
 

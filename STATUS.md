@@ -78,7 +78,7 @@ Goal: Paperclip calls LiteLLM, LiteLLM calls Gemini `worker`. No public anonymou
 - [x] **2.3** LiteLLM Cloud Run + aliases `worker` / `reasoning` / `premium`; gateway auth; no public anonymous API — Cursor — `gateway/`, `infra/terraform/modules/gateway/`, `scripts/build-gateway.sh`, `scripts/seed-secrets.sh --gateway-only`. Terraform plan on [PR #2](https://github.com/hemang-ks/ks-paperclip/pull/2) succeeded.
 - [x] **2.4** Reuse Paperclip HTTP/OpenAI adapter if it exists; custom `litellm-http` only if needed — Cursor — pinned image has no `openai_compatible` adapter; built-in `http` is a webhook (not chat-completions). Reuse `gemini_local` (Gemini CLI) pointed at LiteLLM via `GOOGLE_GEMINI_BASE_URL` + gateway master key as `GEMINI_API_KEY`. No custom Paperclip adapter / no fork.
 - [x] **2.5** Merge PR; seed `litellm-master-key`; dispatch gateway-build; approve Environment; confirm Actions applied LiteLLM — **You** — PR #2 + pin PR #3 merged. Master key seeded. Cloud Run `litellm` Ready (`https://litellm-hdgnwapmwa-uw.a.run.app`, revision `litellm-00001-km8`).
-- [ ] **2.6** Point one test agent at `worker` — **You**
+- [ ] **2.6** Point one test agent at `worker` — **You** — adapter `gemini_local`, engine **`cli`**. First CLI run failed headless (`Invalid auth method selected` + untrusted folder + `cheap` profile); Gemini CLI settings.json + native model IDs are the follow-up.
 - [ ] **2.7** Validate: Paperclip → LiteLLM → Gemini; Claude not default; no keys in Paperclip logs — **You**
 
 ---

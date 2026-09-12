@@ -37,6 +37,38 @@ model_list:
     model_info:
       mode: chat
 
+  # Paperclip's gemini_local cheap profile and the Gemini CLI dropdown send
+  # native Gemini model IDs, not the worker/reasoning aliases.
+  - model_name: gemini-2.5-flash-lite
+    litellm_params:
+      model: gemini/gemini-2.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+      max_retries: 2
+      max_tokens: 2048
+    model_info:
+      mode: chat
+
+  - model_name: gemini-2.5-flash
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+      max_retries: 2
+      max_tokens: 2048
+    model_info:
+      mode: chat
+
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 120
+      max_retries: 1
+      max_tokens: 4096
+    model_info:
+      mode: chat
+
 litellm_settings:
   drop_params: true
   num_retries: 1

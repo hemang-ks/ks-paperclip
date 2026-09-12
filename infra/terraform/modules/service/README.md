@@ -32,6 +32,11 @@ Phase 2.4 mounts `LITELLM_BASE_URL` / `GOOGLE_GEMINI_BASE_URL` (plain) and
 `LITELLM_MASTER_KEY` / `GEMINI_API_KEY` (same Secret Manager secret — gateway
 auth, not the Google Gemini key). `extra_secret_env` is the hook for those.
 
+Gemini CLI on Cloud Run also needs headless auth/trust: `GEMINI_CLI_TRUST_WORKSPACE=true`
+plus `settings.json` selecting `gemini-api-key` (env alone is not enough). That file is
+mounted from Secret Manager via `secret_file_mounts` at `/etc/gemini-cli` (do not mount
+over `~/.gemini` — the CLI writes sessions and skills there).
+
 ## Public access
 
 `allow_unauthenticated=true` sets `invoker_iam_disabled` (no `allUsers` IAM). Paperclip’s
