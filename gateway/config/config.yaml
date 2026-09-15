@@ -9,7 +9,8 @@
 model_list:
   - model_name: worker
     litellm_params:
-      model: gemini/gemini-2.5-flash
+      # Google: gemini-2.5-flash is closed to new API keys (404). Use 3.6.
+      model: gemini/gemini-3.6-flash
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
       max_retries: 2
@@ -19,7 +20,7 @@ model_list:
 
   - model_name: reasoning
     litellm_params:
-      model: gemini/gemini-2.5-pro
+      model: gemini/gemini-3.1-pro-preview
       api_key: os.environ/GEMINI_API_KEY
       timeout: 120
       max_retries: 1
@@ -37,11 +38,11 @@ model_list:
     model_info:
       mode: chat
 
-  # Paperclip's gemini_local cheap profile and the Gemini CLI dropdown send
-  # native Gemini model IDs, not the worker/reasoning aliases.
+  # Incoming IDs from Gemini CLI / Paperclip cheap profile. Upstream is 3.x —
+  # 2.5 models 404 for new Gemini API keys.
   - model_name: gemini-2.5-flash-lite
     litellm_params:
-      model: gemini/gemini-2.5-flash-lite
+      model: gemini/gemini-3.6-flash
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
       max_retries: 2
@@ -51,7 +52,7 @@ model_list:
 
   - model_name: gemini-2.5-flash
     litellm_params:
-      model: gemini/gemini-2.5-flash
+      model: gemini/gemini-3.6-flash
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
       max_retries: 2
@@ -61,11 +62,21 @@ model_list:
 
   - model_name: gemini-2.5-pro
     litellm_params:
-      model: gemini/gemini-2.5-pro
+      model: gemini/gemini-3.1-pro-preview
       api_key: os.environ/GEMINI_API_KEY
       timeout: 120
       max_retries: 1
       max_tokens: 4096
+    model_info:
+      mode: chat
+
+  - model_name: gemini-3.6-flash
+    litellm_params:
+      model: gemini/gemini-3.6-flash
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+      max_retries: 2
+      max_tokens: 2048
     model_info:
       mode: chat
 

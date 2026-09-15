@@ -7,10 +7,10 @@ Manager → Cloud Run), not on Paperclip.
 
 | Alias | Upstream (change here) | Role |
 |---|---|---|
-| `worker` | `gemini/gemini-2.5-flash` | Default / cheap |
-| `reasoning` | `gemini/gemini-2.5-pro` | Harder questions |
+| `worker` | `gemini/gemini-3.6-flash` | Default / cheap |
+| `reasoning` | `gemini/gemini-3.1-pro-preview` | Harder questions |
 | `premium` | `anthropic/claude-sonnet-4-5` | Escalation only |
-| `gemini-2.5-flash-lite` / `gemini-2.5-flash` / `gemini-2.5-pro` | same Gemini models | Native IDs from Gemini CLI / Paperclip `cheap` profile |
+| `gemini-2.5-flash-lite` / `gemini-2.5-flash` / `gemini-2.5-pro` / `gemini-3.6-flash` | 3.6 Flash / 3.1 Pro | Native IDs from Gemini CLI / Paperclip `cheap` profile (2.5 is closed to new keys) |
 
 Paperclip agents should use the alias names when the UI allows a custom model.
 The Gemini CLI dropdown and Paperclip's default `cheap` wake profile send native
