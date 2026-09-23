@@ -1,7 +1,7 @@
 # LLM gateway (LiteLLM)
 
 Paperclip calls this OpenAI-compatible proxy. Provider keys stay here (Secret
-Manager → Cloud Run), not on Paperclip.
+Manager → Cloud Run, or Compose env on the Mini), not on Paperclip.
 
 ## Aliases
 
@@ -43,7 +43,8 @@ Pinned Paperclip (`sha-e55d702`) has no OpenAI-compatible adapter. The built-in
 **Reuse `gemini_local`.** Cloud Run `paperclip` has `GOOGLE_GEMINI_BASE_URL`
 (this service), `GEMINI_API_KEY` set to the LiteLLM master key, plus Gemini CLI
 `settings.json` selecting `gemini-api-key` and `GEMINI_CLI_TRUST_WORKSPACE=true`.
-Point a test agent at engine `cli` (see `docs/runbook.md`).
+Point a test agent at engine `cli` (see `gcp/docs/runbook.md`).
+The Mac Mini Compose stack wires the same env against `http://litellm:4000`.
 
 ## Image
 
@@ -51,7 +52,7 @@ Dockerfile bakes `config/config.yaml` onto `ghcr.io/berriai/litellm:v1.76.1-stab
 
 ```bash
 # CI: dispatch `.github/workflows/gateway-build.yml` (WIF, push to Artifact Registry, pin PR)
-./scripts/build-gateway.sh --project-id "$GCP_PROJECT_ID" --region "$GCP_REGION"
+./gcp/scripts/build-gateway.sh --project-id "$GCP_PROJECT_ID" --region "$GCP_REGION"
 ```
 
 Cloud Run uses `…/paperclip/litellm@sha256:…` from `litellm_image_digest`.
@@ -61,7 +62,7 @@ Cloud Run uses `…/paperclip/litellm@sha256:…` from `litellm_image_digest`.
 | Secret | Env on LiteLLM | Who seeds |
 |---|---|---|
 | `litellm-gemini-api-key` | `GEMINI_API_KEY` | You (2.2) |
-| `litellm-master-key` | `LITELLM_MASTER_KEY` | `scripts/seed-secrets.sh --gateway-only` |
+| `litellm-master-key` | `LITELLM_MASTER_KEY` | `gcp/scripts/seed-secrets.sh --gateway-only` |
 | `litellm-anthropic-api-key` | `ANTHROPIC_API_KEY` | You (optional) |
 
 Terraform creates/imports **containers** only. Values never go in `.tfvars`.
@@ -70,5 +71,5 @@ After the first Phase 2 apply (containers exist, Cloud Run still gated on the
 image pin):
 
 ```bash
-./scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
+./gcp/scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
 ```

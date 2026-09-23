@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Mint a one-time first-admin invite for the Mac Mini Compose deploy.
+# Mint a one-time first-admin invite for the local Compose harness.
 #
 # The Paperclip UI suggests `pnpm paperclipai auth bootstrap-ceo` on the host,
 # but this repo has no Paperclip source tree. For Docker, run the CLI *inside*
@@ -19,19 +19,16 @@ set -a
 source .env
 set +a
 
-PUBLIC_URL="${PAPERCLIP_PUBLIC_URL:?PAPERCLIP_PUBLIC_URL must be set in .env}"
+PUBLIC_URL="${PAPERCLIP_PUBLIC_URL:-http://localhost:${PAPERCLIP_HOST_PORT:-3100}}"
 CONFIG_PATH="${PAPERCLIP_CONFIG:-/paperclip/instances/default/config.json}"
-EXPOSURE="${PAPERCLIP_DEPLOYMENT_EXPOSURE:-private}"
-BIND="${PAPERCLIP_BIND:-tailnet}"
-HOST="${HOST:-0.0.0.0}"
 
 # The server can boot from env alone and never writes config.json. The CLI still
-# requires one, so seed a minimal file that mirrors this stack's env.
-docker compose --env-file .env -f compose.yaml exec -T paperclip sh -c "
+# requires one, so seed a minimal file that mirrors this harness's env.
+docker compose --env-file .env exec -T paperclip sh -c "
 set -e
 mkdir -p \"\$(dirname '$CONFIG_PATH')\"
 if [ ! -f '$CONFIG_PATH' ]; then
-  cat > '$CONFIG_PATH' <<EOF
+  cat > '$CONFIG_PATH' <<'EOF'
 {
   \"\$meta\": {
     \"version\": 1,
@@ -49,15 +46,15 @@ if [ ! -f '$CONFIG_PATH' ]; then
   },
   \"server\": {
     \"deploymentMode\": \"authenticated\",
-    \"exposure\": \"$EXPOSURE\",
-    \"bind\": \"$BIND\",
-    \"host\": \"$HOST\",
+    \"exposure\": \"public\",
+    \"bind\": \"lan\",
+    \"host\": \"0.0.0.0\",
     \"port\": 3100,
     \"serveUi\": true
   },
   \"auth\": {
     \"baseUrlMode\": \"explicit\",
-    \"publicBaseUrl\": \"$PUBLIC_URL\",
+    \"publicBaseUrl\": \"http://localhost:3100\",
     \"disableSignUp\": false
   },
   \"storage\": {

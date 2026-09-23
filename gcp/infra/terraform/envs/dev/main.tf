@@ -100,7 +100,7 @@ module "network" {
 }
 
 # DB password is generated once and kept in Terraform state (GCS backend is private).
-# Also seed paperclip-db-password / paperclip-database-url via scripts/seed-secrets.sh
+# Also seed paperclip-db-password / paperclip-database-url via gcp/scripts/seed-secrets.sh
 # after apply so Cloud Run can read them from Secret Manager (1.7).
 resource "random_password" "db" {
   length  = 32

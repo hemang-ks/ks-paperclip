@@ -3,26 +3,28 @@
 # Creates the tree Terraform / CI / gateway will fill; does not vendor Paperclip.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Script lives in gcp/scripts/ — repo root is two levels up.
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
 # Cost-optimized plan: one env (dev), no ALB/edge module, no Paperclip source tree.
 DIRS=(
   .github/workflows
-  infra/terraform/modules/network
-  infra/terraform/modules/database
-  infra/terraform/modules/registry
-  infra/terraform/modules/secrets
-  infra/terraform/modules/storage
-  infra/terraform/modules/service
-  infra/terraform/modules/jobs
-  infra/terraform/modules/gateway
-  infra/terraform/envs/dev
+  gcp/infra/terraform/modules/network
+  gcp/infra/terraform/modules/database
+  gcp/infra/terraform/modules/registry
+  gcp/infra/terraform/modules/secrets
+  gcp/infra/terraform/modules/storage
+  gcp/infra/terraform/modules/service
+  gcp/infra/terraform/modules/jobs
+  gcp/infra/terraform/modules/gateway
+  gcp/infra/terraform/envs/dev
+  gcp/scripts
+  gcp/docs
+  gcp/config
   gateway/config
-  scripts
-  config
-  docs
   local
+  lab
 )
 
 keep_if_empty() {

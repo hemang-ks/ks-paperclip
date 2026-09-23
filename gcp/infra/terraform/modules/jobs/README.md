@@ -1,7 +1,7 @@
 # Jobs module — `paperclip-auth-bootstrap`
 
 One-shot Cloud Run Job that mints the first-admin invite for `authenticated` /
-`public` mode. Browser self-claim is disabled; see `local/FINDINGS-L3.md`.
+`public` mode. Browser self-claim is disabled; see `lab/FINDINGS-L3.md`.
 
 ## What it does
 
@@ -31,4 +31,4 @@ gcloud logging read \
   --format='value(textPayload)'
 ```
 
-See `docs/runbook.md` → First admin bootstrap.
+See `gcp/docs/runbook.md` → First admin bootstrap.

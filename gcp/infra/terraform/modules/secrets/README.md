@@ -3,7 +3,7 @@
 Creates **Secret Manager containers**, replication, and per-secret IAM only.
 
 **Never** puts plaintext values into Terraform. Seed with
-`gcloud secrets versions add` or `scripts/seed-secrets.sh` (Phase 1.7).
+`gcloud secrets versions add` or `gcp/scripts/seed-secrets.sh` (Phase 1.7).
 
 ## Critical: `paperclip-secrets-master-key`
 

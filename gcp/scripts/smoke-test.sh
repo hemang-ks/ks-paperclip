@@ -4,8 +4,8 @@ set -euo pipefail
 
 BASE_URL="${1:-${PAPERCLIP_PUBLIC_URL:-}}"
 [[ -n "${BASE_URL}" ]] || {
-  echo "usage: scripts/smoke-test.sh <base-url>" >&2
-  echo "   or: PAPERCLIP_PUBLIC_URL=https://… scripts/smoke-test.sh" >&2
+  echo "usage: gcp/scripts/smoke-test.sh <base-url>" >&2
+  echo "   or: PAPERCLIP_PUBLIC_URL=https://… gcp/scripts/smoke-test.sh" >&2
   exit 2
 }
 

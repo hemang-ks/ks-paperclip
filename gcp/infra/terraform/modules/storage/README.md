@@ -30,7 +30,7 @@ gcloud storage hmac create EMAIL \
 ```
 
 Seed `paperclip-gcs-hmac-access-key` / `paperclip-gcs-hmac-secret` via
-`scripts/seed-secrets.sh` (prompts if not using `--from-terraform`).
+`gcp/scripts/seed-secrets.sh` (prompts if not using `--from-terraform`).
 
 Set `create_hmac_key = true` only if the deployer has `roles/storage.hmacKeyAdmin`
 (bootstrap grants it) and you accept the secret living in state.

@@ -61,7 +61,7 @@ jobs:
       - name: Read currently pinned migration-count (if any)
         id: current
         run: |
-          PIN_FILE="infra/terraform/envs/dev/terraform.tfvars.example"
+          PIN_FILE="gcp/infra/terraform/envs/dev/terraform.tfvars.example"
           current_count=""
           current_digest=""
           if [[ -f "${PIN_FILE}" ]]; then
@@ -74,7 +74,8 @@ jobs:
       - name: Promote image (GHCR → Artifact Registry)
         id: promote
         run: |
-          ./scripts/promote-image.sh \
+          chmod +x gcp/scripts/promote-image.sh
+          ./gcp/scripts/promote-image.sh \
             --project-id "${{ vars.GCP_PROJECT_ID }}" \
             --region "${{ vars.GCP_REGION }}" \
             --source-ref "${{ inputs.paperclip_ref }}" \
@@ -89,7 +90,7 @@ jobs:
         run: |
           python3 <<'PY'
           import os, pathlib, re
-          path = pathlib.Path("infra/terraform/envs/dev/terraform.tfvars.example")
+          path = pathlib.Path("gcp/infra/terraform/envs/dev/terraform.tfvars.example")
           text = path.read_text()
           replacements = {
               "paperclip_source_ref": os.environ["SOURCE_REF"],
@@ -134,4 +135,4 @@ jobs:
 
             After merge, Terraform apply (Environment `dev`) picks up the digest when the Cloud Run service module is wired (Phase 1.4+).
           add-paths: |
-            infra/terraform/envs/dev/terraform.tfvars.example
+            gcp/infra/terraform/envs/dev/terraform.tfvars.example

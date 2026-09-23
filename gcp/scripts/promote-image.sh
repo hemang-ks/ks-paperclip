@@ -23,7 +23,7 @@ EMIT_GITHUB_OUTPUT=0
 
 usage() {
   cat <<'EOF'
-Usage: scripts/promote-image.sh [options]
+Usage: gcp/scripts/promote-image.sh [options]
 
 Mirror ghcr.io/paperclipai/paperclip:<ref> →
   REGION-docker.pkg.dev/PROJECT/paperclip/paperclip:<version-label>
@@ -80,7 +80,7 @@ sandbox plugins), upstream does NOT publish release-commit tags for it. You woul
   2. docker buildx build --target cloud -t LOCAL_TAG .
   3. Push LOCAL_TAG to Artifact Registry
   4. Resolve digest with: crane digest REGION-docker.pkg.dev/PROJECT/paperclip/paperclip:TAG
-  5. Pin that digest in infra/terraform/envs/dev (image-promote PR flow)
+  5. Pin that digest in gcp/infra/terraform/envs/dev (image-promote PR flow)
 
 Default path remains: crane copy from public GHCR sha-* tags. Prefer that.
 EOF

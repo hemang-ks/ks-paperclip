@@ -4,7 +4,7 @@
 # PAPERCLIP_MIGRATION_AUTO_APPLY=true (STATUS L8 / working plan).
 #
 # IMPORTANT — schema rollback is NOT automatic. Migrations are forward-only, so
-# a traffic rollback can leave a newer schema in place. Consult docs/runbook.md
+# a traffic rollback can leave a newer schema in place. Consult gcp/docs/runbook.md
 # for anything beyond a trivial revert.
 #
 # Auth: Workload Identity Federation only — no SA JSON keys.
@@ -16,7 +16,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "infra/terraform/envs/dev/terraform.tfvars.example"
+      - "gcp/infra/terraform/envs/dev/terraform.tfvars.example"
   workflow_dispatch:
     inputs:
       skip_smoke:
@@ -68,8 +68,8 @@ jobs:
 
       - name: Prepare tfvars
         run: |
-          chmod +x scripts/ci-prepare-tfvars.sh scripts/smoke-test.sh
-          ./scripts/ci-prepare-tfvars.sh
+          chmod +x gcp/scripts/ci-prepare-tfvars.sh gcp/scripts/smoke-test.sh
+          ./gcp/scripts/ci-prepare-tfvars.sh
 
       - name: Remember previous Cloud Run revision (for rollback)
         id: prev
@@ -83,7 +83,7 @@ jobs:
           echo "Previous ready revision: ${rev:-"(none)"}"
 
       - name: terraform init
-        working-directory: infra/terraform/envs/dev
+        working-directory: gcp/infra/terraform/envs/dev
         run: |
           terraform init \
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
@@ -91,13 +91,13 @@ jobs:
 
       - name: terraform apply
         id: apply
-        working-directory: infra/terraform/envs/dev
+        working-directory: gcp/infra/terraform/envs/dev
         run: |
           terraform apply -input=false -auto-approve
 
       - name: Resolve smoke URL
         id: url
-        working-directory: infra/terraform/envs/dev
+        working-directory: gcp/infra/terraform/envs/dev
         run: |
           uri="$(terraform output -raw paperclip_service_uri 2>/dev/null || true)"
           if [[ -z "${uri}" || "${uri}" == "null" ]]; then
@@ -116,7 +116,7 @@ jobs:
           fi
           # Give the new revision a moment to pass startup probe
           sleep 20
-          ./scripts/smoke-test.sh "${{ steps.url.outputs.uri }}"
+          ./gcp/scripts/smoke-test.sh "${{ steps.url.outputs.uri }}"
 
       - name: Rollback traffic on failure
         if: failure() && steps.apply.outcome == 'success' && steps.prev.outputs.revision != ''

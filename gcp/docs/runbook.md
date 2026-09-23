@@ -1,17 +1,17 @@
 # Runbook
 
-Operational procedures for ks-paperclip. Task checklist stays in [`STATUS.md`](../STATUS.md).
+Operational procedures for ks-paperclip. Task checklist stays in [`STATUS.md`](../../STATUS.md).
 
 ## First admin bootstrap
 
 `authenticated` / `public` disables browser self-claim. You must mint a one-time
 invite via the `paperclip-auth-bootstrap` Cloud Run Job (verified in
-`local/FINDINGS-L3.md`).
+`lab/FINDINGS-L3.md`).
 
 ### Prerequisites
 
 - Cloud Run service `paperclip` is up and healthy
-- Secret values seeded with `scripts/seed-secrets.sh` (especially
+- Secret values seeded with `gcp/scripts/seed-secrets.sh` (especially
   `paperclip-database-url` and auth secrets)
 - Image digest pinned and jobs module applied
 
@@ -232,7 +232,7 @@ Auth on `/v1/*` is `LITELLM_MASTER_KEY`. Provider keys stay on this service.
 2. Seed the gateway master key (does not print the value):
 
    ```bash
-   ./scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
+   ./gcp/scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
    ```
 
 3. Dispatch **gateway-build** (Actions). Merge the digest-pin PR it opens.
