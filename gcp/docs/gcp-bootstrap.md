@@ -1,6 +1,6 @@
 # GCP bootstrap (Phase 0)
 
-`scripts/bootstrap-gcp.sh` is the one-time, manually-run script that creates
+`gcp/scripts/bootstrap-gcp.sh` is the one-time, manually-run script that creates
 everything Terraform itself needs before it can run. It is idempotent (safe to
 re-run) and **never creates service-account JSON keys**.
 
@@ -23,7 +23,7 @@ Flags override environment. All four inputs are required and validated up front.
 gcloud auth login
 gcloud auth application-default login
 
-./scripts/bootstrap-gcp.sh \
+./gcp/scripts/bootstrap-gcp.sh \
   --project-id PROJECT_ID \
   --region us-central1 \
   --github-repo OWNER/REPO \
@@ -155,7 +155,7 @@ Optional repository variables (used by CI when set):
 - Anything Terraform manages (VPC, Cloud SQL, Cloud Run, secrets **values**,
   uploads bucket)
 
-Secret **values** are seeded later with `scripts/seed-secrets.sh`, not here.
+Secret **values** are seeded later with `gcp/scripts/seed-secrets.sh`, not here.
 
 ## Teardown
 

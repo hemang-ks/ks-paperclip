@@ -19,15 +19,15 @@ When a task finishes, mark it `[x]` in this file in the same change set. Complet
 
 ## Phase L — Local validation
 
-Done. Do not rerun. Evidence is in `local/`.
+Done. Do not rerun. Evidence is in `lab/`.
 
-- [x] **L1** Local Compose harness (published image, no volume on `/paperclip`) — Cursor — `local/docker-compose.yml`, `local/README.md`
+- [x] **L1** Local Compose harness (published image, no volume on `/paperclip`) — Cursor — `lab/docker-compose.yml`, `lab/README.md`
 - [x] **L2** Statelessness / secrets master key — Cursor — details were captured during local validation
-- [x] **L3** First-admin bootstrap probe — Cursor — `local/FINDINGS-L3.md`, `config/bootstrap-config.template.json`
-- [x] **L4** Migration fail-fast — Cursor — `local/FINDINGS-L45.md`
-- [x] **L5** Migration job command — Cursor — `local/FINDINGS-L45.md`
-- [x] **L6** WebSockets, SIGTERM, dual-scheduler — Cursor — `local/FINDINGS-L6.md`
-- [x] **L7** Sizing — You — `local/FINDINGS-L7.md` (~2 GiB peak; keep 4 GiB Cloud Run)
+- [x] **L3** First-admin bootstrap probe — Cursor — `lab/FINDINGS-L3.md`, `gcp/config/bootstrap-config.template.json`
+- [x] **L4** Migration fail-fast — Cursor — `lab/FINDINGS-L45.md`
+- [x] **L5** Migration job command — Cursor — `lab/FINDINGS-L45.md`
+- [x] **L6** WebSockets, SIGTERM, dual-scheduler — Cursor — `lab/FINDINGS-L6.md`
+- [x] **L7** Sizing — You — `lab/FINDINGS-L7.md` (~2 GiB peak; keep 4 GiB Cloud Run)
 - [x] **L8** Review findings — You — bootstrap Job required; migrate Job not mandatory for v1; min=1 / CPU always on
 
 ---
@@ -40,7 +40,7 @@ Goal: billed project plus everything GitHub Actions needs. No app infrastructure
 - [x] **0.2** Link billing, monthly budget + 50/75/90/100% alerts — **You**
 - [x] **0.3** `gcloud auth login` + application-default credentials — **You**
 - [x] **0.4** Confirm no GPU / no GKE — **You**
-- [x] **0.5** Write `scripts/bootstrap-gcp.sh` (APIs, TF state bucket, WIF locked to this repo, deployer SA, no JSON keys) — Cursor — `scripts/bootstrap-gcp.sh`, `docs/gcp-bootstrap.md`
+- [x] **0.5** Write `gcp/scripts/bootstrap-gcp.sh` (APIs, TF state bucket, WIF locked to this repo, deployer SA, no JSON keys) — Cursor — `gcp/scripts/bootstrap-gcp.sh`, `gcp/docs/gcp-bootstrap.md`
 - [x] **0.6** Run the bootstrap script — **You**
 - [x] **0.7** GitHub Actions variables (`GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER`, `GCP_DEPLOYER_SA`, `TF_STATE_BUCKET`) and Environment `dev` with you as required reviewer — **You**
 
@@ -54,12 +54,12 @@ Phase 0 complete.
 
 Goal: UI up, Postgres durable, secrets in Secret Manager. No LiteLLM yet. You never run `terraform apply`.
 
-- [x] **1.1** Scaffold `infra/`, `gateway/`, `scripts/`, `.github/workflows/` (do not vendor Paperclip source) — Cursor — `scripts/scaffold-dirs.sh`, `infra/`, `gateway/`, `.github/workflows/`
-- [x] **1.2** Terraform: APIs, Artifact Registry, VPC + private Cloud SQL (small dev tier), Secret Manager containers, GCS uploads, runtime SAs (`paperclip-runtime`, `litellm-runtime` placeholder) — Cursor — `infra/terraform/modules/*`, `infra/terraform/envs/dev/`
-- [x] **1.3** Image promote script + `image-promote.yml` (GHCR → Artifact Registry, digest pin, pin PR) — Cursor — `scripts/promote-image.sh`, `.github/workflows/image-promote.yml`
-- [x] **1.4** Cloud Run `paperclip`: 1 vCPU / 4 GiB, CPU always on, min=max=1, auto-migrate, Cloud SQL + GCS + secrets — Cursor — `infra/terraform/modules/service/`, wired in `envs/dev`
-- [x] **1.5** Bootstrap Job (`auth bootstrap-ceo` + seeded `config.json`) — Cursor — `infra/terraform/modules/jobs/`, `docs/runbook.md`
-- [x] **1.6** GitHub Actions: `terraform-plan.yml`, `terraform-apply.yml` (Environment `dev` gate), `deploy.yml`. WIF, no SA JSON keys — Cursor — `.github/workflows/`, `scripts/ci-prepare-tfvars.sh`, `scripts/smoke-test.sh`
+- [x] **1.1** Scaffold `gcp/infra/`, `gateway/`, `gcp/scripts/`, `.github/workflows/` (do not vendor Paperclip source) — Cursor — `gcp/scripts/scaffold-dirs.sh`, `gcp/infra/`, `gateway/`, `.github/workflows/`
+- [x] **1.2** Terraform: APIs, Artifact Registry, VPC + private Cloud SQL (small dev tier), Secret Manager containers, GCS uploads, runtime SAs (`paperclip-runtime`, `litellm-runtime` placeholder) — Cursor — `gcp/infra/terraform/modules/*`, `gcp/infra/terraform/envs/dev/`
+- [x] **1.3** Image promote script + `image-promote.yml` (GHCR → Artifact Registry, digest pin, pin PR) — Cursor — `gcp/scripts/promote-image.sh`, `.github/workflows/image-promote.yml`
+- [x] **1.4** Cloud Run `paperclip`: 1 vCPU / 4 GiB, CPU always on, min=max=1, auto-migrate, Cloud SQL + GCS + secrets — Cursor — `gcp/infra/terraform/modules/service/`, wired in `envs/dev`
+- [x] **1.5** Bootstrap Job (`auth bootstrap-ceo` + seeded `config.json`) — Cursor — `gcp/infra/terraform/modules/jobs/`, `gcp/docs/runbook.md`
+- [x] **1.6** GitHub Actions: `terraform-plan.yml`, `terraform-apply.yml` (Environment `dev` gate), `deploy.yml`. WIF, no SA JSON keys — Cursor — `.github/workflows/`, `gcp/scripts/ci-prepare-tfvars.sh`, `gcp/scripts/smoke-test.sh`
 - [x] **1.7** Seed Paperclip secret values out of band (model keys in Phase 2) — **You**
 - [x] **1.8** Merge infra PR; approve Environment `dev` so Actions applies — **You**
 - [x] **1.9** Dispatch image-promote (or merge pin PR); claim first admin; disable signup — **You** — pin merged (`sha-e55d702`). First admin claimed. Custom domain `https://paperclip.legotick.com` live. `PAPERCLIP_AUTH_DISABLE_SIGN_UP=true` applied.
@@ -75,7 +75,7 @@ Goal: Paperclip calls LiteLLM, LiteLLM calls Gemini `worker`. No public anonymou
 
 - [x] **2.1** Gemini auth: API key (faster) vs Vertex IAM (later) — **You** — API key
 - [x] **2.2** Put Gemini (and optional Anthropic) keys in Secret Manager; do not paste into chat — **You** — `litellm-gemini-api-key` (and optional `litellm-anthropic-api-key`)
-- [x] **2.3** LiteLLM Cloud Run + aliases `worker` / `reasoning` / `premium`; gateway auth; no public anonymous API — Cursor — `gateway/`, `infra/terraform/modules/gateway/`, `scripts/build-gateway.sh`, `scripts/seed-secrets.sh --gateway-only`. Terraform plan on [PR #2](https://github.com/hemang-ks/ks-paperclip/pull/2) succeeded.
+- [x] **2.3** LiteLLM Cloud Run + aliases `worker` / `reasoning` / `premium`; gateway auth; no public anonymous API — Cursor — `gateway/`, `gcp/infra/terraform/modules/gateway/`, `gcp/scripts/build-gateway.sh`, `gcp/scripts/seed-secrets.sh --gateway-only`. Terraform plan on [PR #2](https://github.com/hemang-ks/ks-paperclip/pull/2) succeeded.
 - [x] **2.4** Reuse Paperclip HTTP/OpenAI adapter if it exists; custom `litellm-http` only if needed — Cursor — pinned image has no `openai_compatible` adapter; built-in `http` is a webhook (not chat-completions). Reuse `gemini_local` (Gemini CLI) pointed at LiteLLM via `GOOGLE_GEMINI_BASE_URL` + gateway master key as `GEMINI_API_KEY`. No custom Paperclip adapter / no fork.
 - [x] **2.5** Merge PR; seed `litellm-master-key`; dispatch gateway-build; approve Environment; confirm Actions applied LiteLLM — **You** — PR #2 + pin PR #3 merged. Master key seeded. Cloud Run `litellm` Ready (`https://litellm-hdgnwapmwa-uw.a.run.app`, revision `litellm-00001-km8`).
 - [ ] **2.6** Point one test agent at `worker` — **You** — adapter `gemini_local`, engine **`cli`**. Auth, ingress, and Gemini key newline are past. Google 404s `gemini-2.5-flash` for new keys; LiteLLM `worker` must use `gemini-3.6-flash`.

@@ -30,7 +30,7 @@ Backend bucket = `TF_STATE_BUCKET` from bootstrap. Prefix: `paperclip/dev`.
 ## Local validate (no backend / no apply)
 
 ```bash
-cd infra/terraform/envs/dev
+cd gcp/infra/terraform/envs/dev
 terraform init -backend=false
 terraform validate
 ```
@@ -40,15 +40,15 @@ terraform validate
 After the first Terraform apply (secret **containers** + Cloud SQL exist):
 
 ```bash
-cd infra/terraform/envs/dev
+cd gcp/infra/terraform/envs/dev
 terraform init -backend-config="bucket=$TF_STATE_BUCKET"
 PRIVATE_IP="$(terraform output -raw cloud_sql_private_ip)"
 
-cd ../../../../
-./scripts/seed-secrets.sh \
+cd ../../../../..
+./gcp/scripts/seed-secrets.sh \
   --project-id "$GCP_PROJECT_ID" \
   --private-ip "$PRIVATE_IP" \
-  --from-terraform infra/terraform/envs/dev
+  --from-terraform gcp/infra/terraform/envs/dev
 ```
 
 Uses the Terraform-managed DB password. HMAC defaults to out-of-band: after apply,
@@ -61,7 +61,7 @@ Phase 2 provider keys live on LiteLLM (`litellm-gemini-api-key`, optional
 **containers**:
 
 ```bash
-./scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
+./gcp/scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
 ```
 
 That seeds `litellm-master-key` only. Dispatch `gateway-build` (or merge its pin

@@ -1,6 +1,6 @@
 # Secret Manager containers + per-secret IAM only.
 # NEVER create secret versions or accept plaintext values in this module.
-# Values are seeded out-of-band (scripts/seed-secrets.sh / gcloud secrets versions add).
+# Values are seeded out-of-band (gcp/scripts/seed-secrets.sh / gcloud secrets versions add).
 
 locals {
   ordinary_secret_ids = toset([

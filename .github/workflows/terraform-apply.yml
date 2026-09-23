@@ -11,8 +11,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "infra/**"
-      - "scripts/ci-prepare-tfvars.sh"
+      - "gcp/infra/**"
+      - "gcp/scripts/ci-prepare-tfvars.sh"
       - ".github/workflows/terraform-apply.yml"
   workflow_dispatch:
 
@@ -26,7 +26,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: infra/terraform/envs/dev
+    working-directory: gcp/infra/terraform/envs/dev
 
 jobs:
   apply:
@@ -65,8 +65,8 @@ jobs:
       - name: Prepare tfvars
         working-directory: .
         run: |
-          chmod +x scripts/ci-prepare-tfvars.sh
-          ./scripts/ci-prepare-tfvars.sh
+          chmod +x gcp/scripts/ci-prepare-tfvars.sh
+          ./gcp/scripts/ci-prepare-tfvars.sh
 
       - name: terraform init
         run: |

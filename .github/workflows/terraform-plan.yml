@@ -8,8 +8,8 @@ name: terraform-plan
 on:
   pull_request:
     paths:
-      - "infra/**"
-      - "scripts/ci-prepare-tfvars.sh"
+      - "gcp/infra/**"
+      - "gcp/scripts/ci-prepare-tfvars.sh"
       - ".github/workflows/terraform-plan.yml"
 
 permissions:
@@ -23,7 +23,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: infra/terraform/envs/dev
+    working-directory: gcp/infra/terraform/envs/dev
 
 jobs:
   plan:
@@ -66,8 +66,8 @@ jobs:
       - name: Prepare tfvars
         working-directory: .
         run: |
-          chmod +x scripts/ci-prepare-tfvars.sh
-          ./scripts/ci-prepare-tfvars.sh
+          chmod +x gcp/scripts/ci-prepare-tfvars.sh
+          ./gcp/scripts/ci-prepare-tfvars.sh
 
       - name: terraform init
         run: |
@@ -82,7 +82,7 @@ jobs:
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: config
-          scan-ref: infra/terraform
+          scan-ref: gcp/infra/terraform
           format: table
           exit-code: "0"
           severity: CRITICAL,HIGH
@@ -100,7 +100,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const path = 'infra/terraform/envs/dev/plan.txt';
+            const path = 'gcp/infra/terraform/envs/dev/plan.txt';
             let body = fs.readFileSync(path, 'utf8');
             const max = 60000;
             if (body.length > max) {
@@ -137,6 +137,6 @@ jobs:
         with:
           name: tfplan-dev
           path: |
-            infra/terraform/envs/dev/tfplan
-            infra/terraform/envs/dev/plan-full.txt
+            gcp/infra/terraform/envs/dev/tfplan
+            gcp/infra/terraform/envs/dev/plan-full.txt
           if-no-files-found: ignore

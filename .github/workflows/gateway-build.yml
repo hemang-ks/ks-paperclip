@@ -41,8 +41,8 @@ jobs:
       - name: Build and push gateway image
         id: build
         run: |
-          chmod +x scripts/build-gateway.sh
-          ./scripts/build-gateway.sh \
+          chmod +x gcp/scripts/build-gateway.sh
+          ./gcp/scripts/build-gateway.sh \
             --project-id "${{ vars.GCP_PROJECT_ID }}" \
             --region "${{ vars.GCP_REGION }}" \
             --tag "${GITHUB_SHA}" \
@@ -54,7 +54,7 @@ jobs:
         run: |
           python3 <<'PY'
           import os, pathlib, re
-          path = pathlib.Path("infra/terraform/envs/dev/terraform.tfvars.example")
+          path = pathlib.Path("gcp/infra/terraform/envs/dev/terraform.tfvars.example")
           text = path.read_text()
           value = os.environ["DIGEST"]
           pattern = re.compile(r'(?m)^(\s*litellm_image_digest\s*=\s*)".*?"\s*$')
@@ -83,11 +83,11 @@ jobs:
             | Digest | `${{ steps.build.outputs.digest }}` |
             | Digest ref | `${{ steps.build.outputs.digest_ref }}` |
 
-            Seed `litellm-master-key` (`scripts/seed-secrets.sh --gateway-only`)
+            Seed `litellm-master-key` (`gcp/scripts/seed-secrets.sh --gateway-only`)
             **before** approving Environment `dev` if this pin creates Cloud Run
             `litellm` for the first time. An empty secret version will fail startup.
 
             After merge, Terraform apply (Environment `dev`) creates or rolls the
             LiteLLM service.
           add-paths: |
-            infra/terraform/envs/dev/terraform.tfvars.example
+            gcp/infra/terraform/envs/dev/terraform.tfvars.example

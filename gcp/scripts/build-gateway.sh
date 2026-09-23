@@ -3,7 +3,7 @@
 # Prints the immutable sha256 digest. Tags are never used in Terraform.
 #
 # Usage:
-#   scripts/build-gateway.sh --project-id ID --region REGION
+#   gcp/scripts/build-gateway.sh --project-id ID --region REGION
 #
 # Optional:
 #   --repository REPO     AR repository id (default: paperclip)
@@ -21,7 +21,7 @@ EMIT_GITHUB_OUTPUT=0
 
 usage() {
   cat <<'EOF'
-Usage: scripts/build-gateway.sh --project-id ID --region REGION [options]
+Usage: gcp/scripts/build-gateway.sh --project-id ID --region REGION [options]
 
 Build gateway/Dockerfile (linux/amd64) and push to
   REGION-docker.pkg.dev/PROJECT/paperclip/litellm:<tag>
@@ -68,7 +68,8 @@ done
 command -v docker >/dev/null 2>&1 || die "docker not on PATH"
 command -v gcloud >/dev/null 2>&1 || die "gcloud not on PATH"
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Script lives in gcp/scripts/ — repo root is two levels up (gateway/ stays at root).
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 [[ -f "${ROOT}/gateway/Dockerfile" ]] || die "missing gateway/Dockerfile"
 
 if [[ -z "${TAG}" ]]; then

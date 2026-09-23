@@ -5,10 +5,10 @@
 # the master key yourself via gcloud after seeding — see messages).
 #
 # Recommended after first Terraform apply:
-#   scripts/seed-secrets.sh \
+#   gcp/scripts/seed-secrets.sh \
 #     --project-id "$GCP_PROJECT_ID" \
-#     --private-ip "$(cd infra/terraform/envs/dev && terraform output -raw cloud_sql_private_ip)" \
-#     --from-terraform infra/terraform/envs/dev
+#     --private-ip "$(cd gcp/infra/terraform/envs/dev && terraform output -raw cloud_sql_private_ip)" \
+#     --from-terraform gcp/infra/terraform/envs/dev
 #
 # Idempotent: skips secrets that already have a version unless --force.
 # paperclip-secrets-master-key additionally requires
@@ -16,7 +16,7 @@
 # to overwrite.
 #
 # Phase 2 gateway key (no DB / HMAC):
-#   scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
+#   gcp/scripts/seed-secrets.sh --project-id "$GCP_PROJECT_ID" --gateway-only
 set -euo pipefail
 
 PROJECT_ID="${PROJECT_ID:-${GCP_PROJECT_ID:-}}"
@@ -34,8 +34,8 @@ HMAC_SECRET=""
 
 usage() {
   cat <<'EOF'
-Usage: scripts/seed-secrets.sh --project-id ID --private-ip IP [options]
-       scripts/seed-secrets.sh --project-id ID --gateway-only
+Usage: gcp/scripts/seed-secrets.sh --project-id ID --private-ip IP [options]
+       gcp/scripts/seed-secrets.sh --project-id ID --gateway-only
 
 Seed Secret Manager versions. Secret *containers* must already exist
 (Terraform secrets module). Does not print secret values.

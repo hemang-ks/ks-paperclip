@@ -1,171 +1,77 @@
-# Local Paperclip harness
+# Local Paperclip (Mac Mini)
 
-Docker Compose stack for validating a **stateless** Paperclip deploy before Cloud Run.
-Uses the published image `ghcr.io/paperclipai/paperclip:sha-e55d702` (v2026.722.0) —
-no source build.
+Durable Docker Compose deploy for day-to-day use on the Mini. Named volumes keep
+Postgres, MinIO, and Paperclip home (`/paperclip`) across restarts — unlike the
+old ephemeral harness in [`../lab/`](../lab/), which deliberately had no volume
+on `/paperclip`.
 
-Services: Paperclip (port 3100), Postgres 17, MinIO + bucket init. `/paperclip` is
-**not** volume-mounted (ephemeral, Cloud Run–like).
+Shared LiteLLM config is built from [`../gateway/`](../gateway/). This stack does
+**not** read or write the GCP project (no Cloud SQL, GCS, or Secret Manager).
 
-Validation notes live in [`FINDINGS.md`](./FINDINGS.md).
-
----
-
-## Prerequisites
-
-- Docker Desktop running (~10 GB free disk for the first pull; image ~1.46 GB compressed)
-- Apple Silicon and Intel both work (multi-arch image)
+Image pin: `ghcr.io/paperclipai/paperclip:sha-e55d702` (same as GCP).
 
 ---
 
-## Run it
+## 1. Env file
 
 ```bash
 cd local
-cp -n .env.example .env          # first time only; fixed secrets for reproducible restarts
-docker compose --env-file .env up -d
+cp .env.example .env
 ```
 
-First `up` pulls images (can take a while) and applies DB migrations. Expect the app to
-listen within ~10–15 seconds after containers start.
+Edit `.env`:
 
-Check health:
+- Set `GEMINI_API_KEY` and `ANTHROPIC_API_KEY` (LiteLLM only).
+- Set `LITELLM_MASTER_KEY` (generate a strong secret; Paperclip uses this as its
+  gateway key via compose).
+- Replace `mac-mini.tailnet.ts.net` in `PAPERCLIP_PUBLIC_URL`,
+  `PAPERCLIP_API_URL`, and `PAPERCLIP_ALLOWED_HOSTNAMES` with this Mini's
+  Tailscale MagicDNS name.
+- Generate Paperclip auth/signing secrets locally:
+  - `openssl rand -hex 32` for `BETTER_AUTH_SECRET`,
+    `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET`, `PAPERCLIP_AGENT_JWT_SECRET`
+  - `openssl rand -base64 32` for `PAPERCLIP_SECRETS_MASTER_KEY`
+
+Do **not** copy values from GCP Secret Manager. This is a fresh instance.
+
+## 2. Start
 
 ```bash
-curl -sS http://localhost:3100/api/health
-# open http://localhost:3100 in a browser
+docker compose up -d
 ```
 
-Healthy response looks like:
-
-```json
-{
-  "status": "ok",
-  "deploymentMode": "authenticated",
-  "deploymentExposure": "public",
-  "bootstrapStatus": "bootstrap_pending",
-  "bootstrapInviteActive": false
-}
-```
-
----
-
-## Make agents actually run (API keys)
-
-The control plane comes up without provider keys. **Agent runs do not.**
-
-Chief of Staff (and the other default agents) use the `claude_local` adapter, which
-spawns Claude inside the container. With no credentials you get:
-
-```text
-Error: Authentication required
-stderr: Adapter execution timeout: none (…)
-```
-
-The timeout line is informational; the real failure is missing Anthropic auth.
-
-1. Put your key in `local/.env` (do not commit it):
-
-   ```bash
-   ANTHROPIC_API_KEY=sk-ant-...
-   ```
-
-   For Codex agents, also set `OPENAI_API_KEY`.
-
-2. Recreate the app container so it picks up the new env:
-
-   ```bash
-   cd local
-   docker compose --env-file .env up -d --force-recreate paperclip
-   ```
-
-3. Re-run the agent from the UI.
-
-Upstream docs: pass `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` into the container for local
-adapter runs (`doc/DOCKER.md` in the image).
-
----
-
-## First admin (required once)
-
-The UI will say the instance is waiting on its first admin. In
-`authenticated` / `public` mode, browser self-claim is **disabled** — you must mint a
-one-time invite from the host that runs Paperclip.
-
-**Do not** run `pnpm paperclipai auth bootstrap-ceo` on your Mac in this repo. There is
-no Paperclip `package.json` here, so pnpm fails with `ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND`.
-
-Run the CLI **inside** the container:
+## 3. First admin (once)
 
 ```bash
-cd local
 ./bootstrap-admin.sh
 ```
 
-That script:
+Open the invite URL it prints (on a machine that can reach the Mini over Tailscale).
 
-1. Seeds a minimal `config.json` in the container (the server boots from env alone and
-   never writes this file; the CLI still requires it).
-2. Runs `pnpm paperclipai auth bootstrap-ceo` and prints an invite URL.
+## 4. Lock signup
 
-Open the URL in your browser, create the account, and finish setup.
-
-Equivalent one-liner (if you prefer not to use the script):
+Set `PAPERCLIP_AUTH_DISABLE_SIGN_UP=true` in `.env`, then:
 
 ```bash
-docker compose --env-file .env exec paperclip \
-  sh -c 'cd /app && pnpm paperclipai auth bootstrap-ceo --base-url http://localhost:3100'
+docker compose up -d --force-recreate paperclip
 ```
 
-(You’ll get “No config found” unless `config.json` already exists — prefer
-`./bootstrap-admin.sh`.)
+## 5. Other computers
 
----
+Join the same Tailscale network and open `PAPERCLIP_PUBLIC_URL`. Do **not**
+port-forward 3100 from the Mini.
 
-## Useful commands
+## 6. Backups
 
-```bash
-# logs
-docker compose --env-file .env logs -f paperclip
-
-# stop containers (keep data in postgres/minio volumes — none of our services use
-# named volumes today; recreate is a full wipe)
-docker compose --env-file .env down
-
-# tear down and remove anonymous volumes
-docker compose --env-file .env down -v
-
-# replace only the app container (statelessness check)
-docker compose --env-file .env rm -sf paperclip
-docker compose --env-file .env up -d paperclip
-```
-
----
-
-## Side-by-side stacks
-
-`COMPOSE_PROJECT_NAME` and `PAPERCLIP_HOST_PORT` are parameterized so several harnesses
-can run at once (needed for later Phase L tests):
-
-```bash
-COMPOSE_PROJECT_NAME=paperclip-a PAPERCLIP_HOST_PORT=3110 \
-  docker compose --env-file .env up -d
-
-COMPOSE_PROJECT_NAME=paperclip-b PAPERCLIP_HOST_PORT=3120 \
-  docker compose --env-file .env up -d
-```
-
-When using a non-default host port, set `PAPERCLIP_PUBLIC_URL` / `PAPERCLIP_API_URL` in that
-stack’s env to match (or pass them on the command line) before minting a bootstrap invite.
-
----
+This stack is the only copy of Mini data. Back up the three named volumes
+(`paperclip-postgres`, `paperclip-minio`, `paperclip-home`) — for example with
+`docker compose` volume backup tooling or by copying the volume data directories.
 
 ## Files
 
 | Path | Purpose |
 |------|---------|
-| `docker-compose.yml` | paperclip + postgres + minio + mc init |
-| `.env.example` | documented, fixed local secrets |
-| `.env` | compose input (copy of example; not for production) |
+| `compose.yaml` | paperclip + postgres + minio + litellm |
+| `.env.example` | placeholders only |
+| `gemini-cli/settings.json` | Gemini CLI headless auth selection |
 | `bootstrap-admin.sh` | mint first-admin invite inside the container |
-| `FINDINGS.md` | empirical validation results |

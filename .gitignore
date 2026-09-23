@@ -5,10 +5,15 @@
 **/.env
 !**/.env.example
 
-# Local validation scratch / runtime output
+# Local / lab validation scratch / runtime output
 local/FINDINGS.md
 local/data/
 local/**/*.log
+lab/FINDINGS.md
+lab/data/
+lab/**/*.log
+lab/.env
+lab/.env.l6
 
 # OS / editor
 .DS_Store

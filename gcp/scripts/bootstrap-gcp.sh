@@ -18,7 +18,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: scripts/bootstrap-gcp.sh [options]
+Usage: gcp/scripts/bootstrap-gcp.sh [options]
 
 One-time, manually-run bootstrap. Creates everything Terraform needs before it
 can run. Idempotent. Never creates service-account JSON keys.
@@ -41,7 +41,7 @@ Optional overrides:
   SA_ID             Deployer service account ID     (default: terraform-deployer)
 
 Examples:
-  scripts/bootstrap-gcp.sh \
+  gcp/scripts/bootstrap-gcp.sh \
     --project-id my-project \
     --region us-central1 \
     --github-repo my-org/ks-paperclip \
@@ -49,7 +49,7 @@ Examples:
 
   PROJECT_ID=my-project REGION=us-central1 \
     GITHUB_REPO=my-org/ks-paperclip STATE_BUCKET=my-project-tf-state \
-    scripts/bootstrap-gcp.sh
+    gcp/scripts/bootstrap-gcp.sh
 EOF
 }
 
@@ -480,6 +480,6 @@ If you use the gh CLI from this checkout:
   gh variable set GCP_REGION       --body "${REGION}"
   gh variable set TF_STATE_BUCKET  --body "${STATE_BUCKET}"
 
-Teardown: see docs/gcp-bootstrap.md
+Teardown: see gcp/docs/gcp-bootstrap.md
 ========================================================================
 EOF
