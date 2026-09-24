@@ -16,7 +16,9 @@ services:
     restart: unless-stopped
 
   minio:
-    image: minio/minio:latest
+    # Docker Hub deleted minio/minio, and quay.io/minio/minio refuses anonymous pulls.
+    # pgsty/minio is a drop-in build: same server command, MINIO_* env, and /data layout.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -30,7 +32,7 @@ services:
     restart: unless-stopped
 
   minio-init:
-    image: minio/mc:latest
+    image: pgsty/mc:RELEASE.2026-09-16T00-00-00Z
     depends_on:
       minio:
         condition: service_started

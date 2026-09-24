@@ -31,7 +31,7 @@ docker compose --env-file .env -f compose.yaml exec -T paperclip sh -c "
 set -e
 mkdir -p \"\$(dirname '$CONFIG_PATH')\"
 if [ ! -f '$CONFIG_PATH' ]; then
-  cat > '$CONFIG_PATH' <<EOF
+  cat > '$CONFIG_PATH' <<'EOF'
 {
   \"\$meta\": {
     \"version\": 1,
