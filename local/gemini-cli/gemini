@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+// Paperclip's Gemini adapter defaults sandbox on (`gemini --sandbox`).
+// This container has no Docker or Podman, so drop that flag and run the CLI here.
+import { spawn } from "node:child_process";
+
+const real = "/usr/local/lib/node_modules/@google/gemini-cli/bundle/gemini.js";
+const args = process.argv.slice(2).filter((arg) => arg !== "--sandbox" && !arg.startsWith("--sandbox="));
+const child = spawn(process.execPath, [real, ...args], {
+  stdio: "inherit",
+  env: { ...process.env, GEMINI_SANDBOX: "false" },
+});
+
+child.on("exit", (code, signal) => {
+  if (signal) {
+    process.kill(process.pid, signal);
+    return;
+  }
+  process.exit(code ?? 1);
+});

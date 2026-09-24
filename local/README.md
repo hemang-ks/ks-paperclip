@@ -21,16 +21,57 @@ cp .env.example .env
 
 Edit `.env`:
 
-- Set `GEMINI_API_KEY` and `ANTHROPIC_API_KEY` (LiteLLM only).
-- Set `LITELLM_MASTER_KEY` (generate a strong secret; Paperclip uses this as its
-  gateway key via compose).
-- Replace `mac-mini.tailnet.ts.net` in `PAPERCLIP_PUBLIC_URL`,
-  `PAPERCLIP_API_URL`, and `PAPERCLIP_ALLOWED_HOSTNAMES` with this Mini's
-  Tailscale MagicDNS name.
-- Generate Paperclip auth/signing secrets locally:
-  - `openssl rand -hex 32` for `BETTER_AUTH_SECRET`,
-    `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET`, `PAPERCLIP_AGENT_JWT_SECRET`
-  - `openssl rand -base64 32` for `PAPERCLIP_SECRETS_MASTER_KEY`
+- Set `GEMINI_API_KEY` and `ANTHROPIC_API_KEY` (LiteLLM only). Those provider
+  keys stay on the LiteLLM container.
+- Set `LITELLM_MASTER_KEY`. This is the gateway password Paperclip sends as
+  `Authorization: Bearer …`. Compose also copies it onto the Paperclip service
+  as `GEMINI_API_KEY` so agents can call the gateway. LiteLLM requires the
+  `sk-` prefix (same form as `gcp/scripts/seed-secrets.sh`). Generate it on the
+  Mini and paste the line into `.env`:
+
+  ```bash
+  echo "sk-$(openssl rand -hex 24)"
+  ```
+
+- Replace `mac-mini.tailnet.ts.net` with this Mini's Tailscale MagicDNS name.
+  Tailscale must be running (`tailscale up`). Look the name up on the Mini:
+
+  ```bash
+  tailscale status --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["Self"]["DNSName"].rstrip("."))'
+  ```
+
+  Put that name in all three places. Also set `PAPERCLIP_PUBLISH_HOST` to
+  `tailscale ip -4`. Compose publishes port 3100 only on that address.
+  `PAPERCLIP_BIND` stays `lan`: the container has no Tailscale interface, so
+  `tailnet` makes the process crash-loop. On this Mini the name is
+  `hemangs-mac-mini.tailfbfa38.ts.net`:
+
+  ```bash
+  PAPERCLIP_PUBLIC_URL=http://hemangs-mac-mini.tailfbfa38.ts.net:3100
+  PAPERCLIP_API_URL=http://hemangs-mac-mini.tailfbfa38.ts.net:3100
+  PAPERCLIP_ALLOWED_HOSTNAMES=hemangs-mac-mini.tailfbfa38.ts.net
+  ```
+
+  `PAPERCLIP_PUBLIC_URL` has to be the exact URL opened in the browser, or
+  login fails. Other computers join the same Tailscale network. Do not
+  port-forward 3100.
+- Generate four independent Paperclip auth/signing secrets. Each variable
+  gets its own output. Do not reuse one value across them: a leak of any one
+  would then stand in for the others. Run `openssl rand -hex 32` three times,
+  once per variable:
+
+  ```bash
+  echo "BETTER_AUTH_SECRET=$(openssl rand -hex 32)"
+  echo "PAPERCLIP_TOOL_ACTION_SIGNING_SECRET=$(openssl rand -hex 32)"
+  echo "PAPERCLIP_AGENT_JWT_SECRET=$(openssl rand -hex 32)"
+  echo "PAPERCLIP_SECRETS_MASTER_KEY=$(openssl rand -base64 32)"
+  ```
+
+  `BETTER_AUTH_SECRET` signs sessions. `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET`
+  signs tool calls. `PAPERCLIP_AGENT_JWT_SECRET` signs agent tokens.
+  `PAPERCLIP_SECRETS_MASTER_KEY` encrypts stored secrets and must be the
+  base64 form (32 bytes). This matches `gcp/scripts/seed-secrets.sh`, which
+  writes a fresh value into each secret.
 
 Do **not** copy values from GCP Secret Manager. This is a fresh instance.
 
